@@ -19,8 +19,10 @@ import java.awt.event.InputEvent;
 public class EditorFrame extends JFrame {
 
     private JPanel centerPanel;
+    private VoxelModel voxelModel;
 
     public EditorFrame() {
+        this.voxelModel = new VoxelModel();
         setTitle("Swing Editor");
         setSize(800, 600);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -111,18 +113,15 @@ public class EditorFrame extends JFrame {
         centerPanel = new JPanel(new GridLayout(2, 2));
 
         // Top Left: Front
-        JPanel frontPanel = new JPanel();
-        frontPanel.setBorder(BorderFactory.createTitledBorder("Front"));
+        ViewPanel frontPanel = new ViewPanel("Front", voxelModel);
         centerPanel.add(frontPanel);
 
         // Top Right: Left
-        JPanel leftViewPanel = new JPanel();
-        leftViewPanel.setBorder(BorderFactory.createTitledBorder("Left"));
+        ViewPanel leftViewPanel = new ViewPanel("Left", voxelModel);
         centerPanel.add(leftViewPanel);
 
         // Bottom Left: Top
-        JPanel topViewPanel = new JPanel();
-        topViewPanel.setBorder(BorderFactory.createTitledBorder("Top"));
+        ViewPanel topViewPanel = new ViewPanel("Top", voxelModel);
         centerPanel.add(topViewPanel);
 
         // Bottom Right: Preview
