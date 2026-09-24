@@ -1,4 +1,4 @@
-package com.example.swingeditor;
+package com.pigdroid.vox.editor;
 
 import java.util.HashMap;
 import java.util.Map;
