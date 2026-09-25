@@ -139,6 +139,11 @@ public class PreviewPanel extends JPanel {
             double mx = v.x() - avgX;
             double my = v.y() - avgY;
             double mz = v.z() - avgZ;
+            if (model.getReferenceSystem() == ReferenceSystem.AMERICAN) {
+                double temp = my;
+                my = mz;
+                mz = temp;
+            }
 
             // Apply Y rotation
             double x1 = mx * Math.cos(rotateY) - mz * Math.sin(rotateY);
@@ -176,6 +181,11 @@ public class PreviewPanel extends JPanel {
             double mx = v.x() - avgX;
             double my = v.y() - avgY; // y goes down in screen coords usually, let's keep it simple
             double mz = v.z() - avgZ;
+            if (model.getReferenceSystem() == ReferenceSystem.AMERICAN) {
+                double temp = my;
+                my = mz;
+                mz = temp;
+            }
 
             // Calculate center depth for sorting
             double z1_center = mx * Math.sin(rotateY) + mz * Math.cos(rotateY);
@@ -287,15 +297,28 @@ public class PreviewPanel extends JPanel {
         double axisLength = 5.0;
 
         // Origin (0,0,0) offset by avg center
-        double ox = 0 - avgX;
-        double oy = 0 - avgY;
-        double oz = 0 - avgZ;
+        double oxMut = 0 - avgX;
+        double oyMut = 0 - avgY;
+        double ozMut = 0 - avgZ;
+        if (model.getReferenceSystem() == ReferenceSystem.AMERICAN) {
+            double temp = oyMut;
+            oyMut = ozMut;
+            ozMut = temp;
+        }
+        final double ox = oxMut;
+        final double oy = oyMut;
+        final double oz = ozMut;
 
         // Helper to project 3D to 2D using existing math
         java.util.function.BiFunction<Point3D, Color, Void> drawAxis = (endPt, col) -> {
             double ex = endPt.x - avgX;
             double ey = endPt.y - avgY;
             double ez = endPt.z - avgZ;
+            if (model.getReferenceSystem() == ReferenceSystem.AMERICAN) {
+                double temp = ey;
+                ey = ez;
+                ez = temp;
+            }
 
             // Origin projection
             double ox1 = ox * Math.cos(rotateY) - oz * Math.sin(rotateY);
@@ -331,6 +354,11 @@ public class PreviewPanel extends JPanel {
             double lx = pt.x - avgX;
             double ly = pt.y - avgY;
             double lz = pt.z - avgZ;
+            if (model.getReferenceSystem() == ReferenceSystem.AMERICAN) {
+                double temp = ly;
+                ly = lz;
+                lz = temp;
+            }
 
             double lx1 = lx * Math.cos(rotateY) - lz * Math.sin(rotateY);
             double lz1 = lx * Math.sin(rotateY) + lz * Math.cos(rotateY);
