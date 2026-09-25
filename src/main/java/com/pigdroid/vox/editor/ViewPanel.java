@@ -13,9 +13,11 @@ public class ViewPanel extends JPanel {
     private JComboBox<String> viewSelector;
     private GridPanel gridPanel;
     private VoxelModel model;
+    private UndoManager undoManager;
 
-    public ViewPanel(String initialView, VoxelModel model, ToolManager toolManager) {
+    public ViewPanel(String initialView, VoxelModel model, ToolManager toolManager, UndoManager undoManager) {
         this.model = model;
+        this.undoManager = undoManager;
         setLayout(new BorderLayout());
 
         gridPanel = new GridPanel();
@@ -31,8 +33,14 @@ public class ViewPanel extends JPanel {
         gridPanel.setModel(model, () -> (String) viewSelector.getSelectedItem());
 
         MouseAdapter ma = new MouseAdapter() {
+            private VoxelModel snapshot;
+            private int initialChangeCount;
+
             @Override
             public void mousePressed(MouseEvent e) {
+                snapshot = model.clone();
+                initialChangeCount = model.getChangeCount();
+
                 Tool tool = toolManager.getActiveTool();
                 if (tool != null) {
                     tool.onMousePressed(e, (String) viewSelector.getSelectedItem(), model, gridPanel);
@@ -52,6 +60,10 @@ public class ViewPanel extends JPanel {
                 Tool tool = toolManager.getActiveTool();
                 if (tool != null) {
                     tool.onMouseReleased(e);
+                }
+
+                if (model.getChangeCount() != initialChangeCount && undoManager != null) {
+                    undoManager.recordState(snapshot);
                 }
             }
         };

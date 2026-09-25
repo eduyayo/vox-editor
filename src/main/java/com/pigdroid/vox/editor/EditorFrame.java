@@ -33,10 +33,12 @@ public class EditorFrame extends JFrame {
     private JPanel centerPanel;
     private VoxelModel voxelModel;
     private ToolManager toolManager;
+    private UndoManager undoManager;
 
     public EditorFrame() {
         this.voxelModel = new VoxelModel();
         this.toolManager = new ToolManager();
+        this.undoManager = new UndoManager();
         this.toolManager.addTool(new ShiftKeyDecorator(new BrushTool()));
         this.toolManager.addTool(new ShiftKeyDecorator(new SquareTool()));
         this.toolManager.addTool(new ShiftKeyDecorator(new CircleTool()));
@@ -82,9 +84,11 @@ public class EditorFrame extends JFrame {
 
         JMenuItem undoItem = new JMenuItem("Undo");
         undoItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK));
+        undoItem.addActionListener(e -> performUndo());
 
         JMenuItem redoItem = new JMenuItem("Redo");
         redoItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK));
+        redoItem.addActionListener(e -> performRedo());
 
         JMenuItem cutItem = new JMenuItem("Cut");
         cutItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, InputEvent.CTRL_DOWN_MASK));
@@ -133,8 +137,13 @@ public class EditorFrame extends JFrame {
         saveBtn.addActionListener(e -> saveFile());
         toolBar.add(saveBtn);
         toolBar.addSeparator();
-        toolBar.add(new JButton("Undo"));
-        toolBar.add(new JButton("Redo"));
+        JButton undoBtn = new JButton("Undo");
+        undoBtn.addActionListener(e -> performUndo());
+        toolBar.add(undoBtn);
+
+        JButton redoBtn = new JButton("Redo");
+        redoBtn.addActionListener(e -> performRedo());
+        toolBar.add(redoBtn);
 
         toolBar.addSeparator();
         toolBar.add(new JLabel("Reference: "));
@@ -194,15 +203,15 @@ public class EditorFrame extends JFrame {
         centerPanel = new JPanel(new GridLayout(2, 2));
 
         // Top Left: Front
-        ViewPanel frontPanel = new ViewPanel("Front", voxelModel, toolManager);
+        ViewPanel frontPanel = new ViewPanel("Front", voxelModel, toolManager, undoManager);
         centerPanel.add(frontPanel);
 
         // Top Right: Left
-        ViewPanel leftViewPanel = new ViewPanel("Left", voxelModel, toolManager);
+        ViewPanel leftViewPanel = new ViewPanel("Left", voxelModel, toolManager, undoManager);
         centerPanel.add(leftViewPanel);
 
         // Bottom Left: Top
-        ViewPanel topViewPanel = new ViewPanel("Top", voxelModel, toolManager);
+        ViewPanel topViewPanel = new ViewPanel("Top", voxelModel, toolManager, undoManager);
         centerPanel.add(topViewPanel);
 
         // Bottom Right: Preview
@@ -249,6 +258,22 @@ public class EditorFrame extends JFrame {
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(this, "Failed to save file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+
+    private void performUndo() {
+        VoxelModel prevState = undoManager.undo(voxelModel.clone());
+        if (prevState != null) {
+            voxelModel.copyFrom(prevState);
+            repaint();
+        }
+    }
+
+    private void performRedo() {
+        VoxelModel nextState = undoManager.redo(voxelModel.clone());
+        if (nextState != null) {
+            voxelModel.copyFrom(nextState);
+            repaint();
         }
     }
 

@@ -5,14 +5,38 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class VoxelModel {
+public class VoxelModel implements Cloneable {
     private final Map<Vector3D, Integer> voxels;
     private final List<Projection> projections;
     private ReferenceSystem referenceSystem = ReferenceSystem.EUROPEAN;
+    private int changeCount = 0;
 
     public VoxelModel() {
         this.voxels = new HashMap<>();
         this.projections = new ArrayList<>();
+    }
+
+    public int getChangeCount() {
+        return changeCount;
+    }
+
+    public void copyFrom(VoxelModel other) {
+        this.voxels.clear();
+        this.voxels.putAll(other.voxels);
+        this.projections.clear();
+        this.projections.addAll(other.projections);
+        this.referenceSystem = other.referenceSystem;
+        this.changeCount++;
+    }
+
+    @Override
+    public VoxelModel clone() {
+        VoxelModel clone = new VoxelModel();
+        clone.voxels.putAll(this.voxels);
+        clone.projections.addAll(this.projections);
+        clone.referenceSystem = this.referenceSystem;
+        clone.changeCount = this.changeCount;
+        return clone;
     }
 
     public ReferenceSystem getReferenceSystem() {
@@ -20,7 +44,10 @@ public class VoxelModel {
     }
 
     public void setReferenceSystem(ReferenceSystem referenceSystem) {
-        this.referenceSystem = referenceSystem;
+        if (this.referenceSystem != referenceSystem) {
+            this.referenceSystem = referenceSystem;
+            this.changeCount++;
+        }
     }
 
     public Integer getMappedU(String viewName, Vector3D v) {
@@ -76,7 +103,10 @@ public class VoxelModel {
     }
 
     public void setVoxel(int x, int y, int z, int value) {
-        voxels.put(new Vector3D(x, y, z), value);
+        Integer old = voxels.put(new Vector3D(x, y, z), value);
+        if (old == null || !old.equals(value)) {
+            changeCount++;
+        }
     }
 
     public Integer getVoxel(int x, int y, int z) {
@@ -84,7 +114,10 @@ public class VoxelModel {
     }
 
     public void removeVoxel(int x, int y, int z) {
-        voxels.remove(new Vector3D(x, y, z));
+        Integer removed = voxels.remove(new Vector3D(x, y, z));
+        if (removed != null) {
+            changeCount++;
+        }
     }
 
     public Map<Vector3D, Integer> getVoxels() {
@@ -106,12 +139,14 @@ public class VoxelModel {
 
                 // Let's remove the old one to replace it with the new color
                 projections.remove(p);
+                changeCount++;
                 break;
             }
         }
 
         Projection newProjection = new Projection(viewName, u, v, colorValue);
         projections.add(newProjection);
+        changeCount++;
 
         for (Projection p : projections) {
             if (p == newProjection) continue;
@@ -188,7 +223,10 @@ public class VoxelModel {
     }
 
     public void deleteProjection(String viewName, int u, int v) {
-        projections.removeIf(p -> p.viewName().equals(viewName) && p.u() == u && p.v() == v);
+        boolean removed = projections.removeIf(p -> p.viewName().equals(viewName) && p.u() == u && p.v() == v);
+        if (removed) {
+            changeCount++;
+        }
 
         List<Vector3D> toRemove = new ArrayList<>();
         for (Vector3D voxel : voxels.keySet()) {
