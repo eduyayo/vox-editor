@@ -37,9 +37,9 @@ public class EditorFrame extends JFrame {
     public EditorFrame() {
         this.voxelModel = new VoxelModel();
         this.toolManager = new ToolManager();
-        this.toolManager.addTool(new BrushTool());
-        this.toolManager.addTool(new SquareTool());
-        this.toolManager.addTool(new CircleTool());
+        this.toolManager.addTool(new ShiftKeyDecorator(new BrushTool()));
+        this.toolManager.addTool(new ShiftKeyDecorator(new SquareTool()));
+        this.toolManager.addTool(new ShiftKeyDecorator(new CircleTool()));
 
         setTitle("Swing Editor");
         setSize(800, 600);
