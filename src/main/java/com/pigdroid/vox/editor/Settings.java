@@ -7,7 +7,7 @@ import java.util.List;
 public class Settings {
     private static Settings instance;
     private Color viewBackgroundColor = Color.DARK_GRAY;
-    private Color axisColor = new Color(192, 192, 192); // Silver gray
+    private Color axisColor = Color.WHITE; // White
     private List<SettingsListener> listeners = new ArrayList<>();
 
     private Settings() {}

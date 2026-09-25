@@ -164,7 +164,7 @@ public class GridPanel extends JPanel {
             }
 
             // Draw coordinates
-            g.setColor(Color.DARK_GRAY);
+            g.setColor(Settings.getInstance().getAxisColor());
             for (int x = startX; x < width; x += gridSize) {
                 if (x == originX) continue;
                 int coord = (x - originX) / gridSize;
