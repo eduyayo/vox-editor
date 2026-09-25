@@ -51,15 +51,9 @@ public class GridPanel extends JPanel {
                 // Draw mapped voxels
                 g.setColor(Color.RED);
                 for (Vector3D v : model.getVoxels().keySet()) {
-                    Integer mappedU = null;
-                    Integer mappedV = null;
-                    switch (viewName) {
-                        case "Front": mappedU = v.x(); mappedV = v.y(); break;
-                        case "Top": mappedU = v.x(); mappedV = v.z(); break;
-                        case "Bottom": mappedU = v.x(); mappedV = v.z(); break;
-                        case "Left": mappedU = v.z(); mappedV = v.y(); break;
-                        case "Right": mappedU = v.z(); mappedV = v.y(); break;
-                    }
+                    Integer mappedU = model.getMappedU(viewName, v);
+                    Integer mappedV = model.getMappedV(viewName, v);
+
                     if (mappedU != null && mappedV != null) {
                         g.fillRect(mappedU * gridSize, mappedV * gridSize, gridSize, gridSize);
                     }
