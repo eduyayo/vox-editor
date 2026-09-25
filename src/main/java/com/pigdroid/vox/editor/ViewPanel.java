@@ -36,7 +36,12 @@ public class ViewPanel extends JPanel {
                 int u = e.getX() / gridPanel.getGridSize();
                 int v = e.getY() / gridPanel.getGridSize();
                 String viewName = (String) viewSelector.getSelectedItem();
-                model.addProjection(viewName, u, v);
+
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    model.addProjection(viewName, u, v);
+                } else if (SwingUtilities.isRightMouseButton(e)) {
+                    model.deleteProjection(viewName, u, v);
+                }
                 SwingUtilities.getWindowAncestor(gridPanel).repaint();
             }
         });

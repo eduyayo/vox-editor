@@ -2,7 +2,9 @@ package com.pigdroid.vox.editor;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -97,6 +99,21 @@ public class EditorFrame extends JFrame {
         toolBar.addSeparator();
         toolBar.add(new JButton("Undo"));
         toolBar.add(new JButton("Redo"));
+
+        toolBar.addSeparator();
+        toolBar.add(new JLabel("Reference: "));
+        JComboBox<String> referenceSelector = new JComboBox<>(new String[]{"European", "American"});
+        referenceSelector.setSelectedItem("European");
+        referenceSelector.addActionListener(e -> {
+            String selected = (String) referenceSelector.getSelectedItem();
+            if ("American".equals(selected)) {
+                voxelModel.setReferenceSystem(ReferenceSystem.AMERICAN);
+            } else {
+                voxelModel.setReferenceSystem(ReferenceSystem.EUROPEAN);
+            }
+            repaint();
+        });
+        toolBar.add(referenceSelector);
 
         add(toolBar, BorderLayout.NORTH);
     }
