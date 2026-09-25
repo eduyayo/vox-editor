@@ -21,6 +21,7 @@ public class ViewPanel extends JPanel {
         setLayout(new BorderLayout());
 
         gridPanel = new GridPanel();
+        gridPanel.setToolManager(toolManager);
 
         viewSelector = new JComboBox<>(new String[]{"Front", "Back", "Top", "Bottom", "Left", "Right"});
         viewSelector.setSelectedItem(initialView);

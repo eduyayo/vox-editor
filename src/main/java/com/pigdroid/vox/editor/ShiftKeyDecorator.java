@@ -107,7 +107,7 @@ public class ShiftKeyDecorator implements Tool {
                 newX = startX;
                 newY = startY;
             }
-        } else if (wrapped.getName().equals("Circle") || wrapped.getName().equals("Square")) {
+        } else if (wrapped.getName().equals("Circle") || wrapped.getName().equals("Square") || wrapped.getName().equals("Freeform/scale") || wrapped.getName().equals("Select")) {
             int maxGrid = Math.max(absDGridX, absDGridY);
             int signX = dGridX < 0 ? -1 : 1;
             int signY = dGridY < 0 ? -1 : 1;

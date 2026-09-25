@@ -16,6 +16,7 @@ public class GridPanel extends JPanel {
     private VoxelModel model;
     private Supplier<String> viewNameSupplier;
     private Consumer<Graphics> previewProvider;
+    private ToolManager toolManager;
 
     private int panX = 0;
     private int panY = 0;
@@ -64,6 +65,11 @@ public class GridPanel extends JPanel {
     public void setModel(VoxelModel model, Supplier<String> viewNameSupplier) {
         this.model = model;
         this.viewNameSupplier = viewNameSupplier;
+        repaint();
+    }
+
+    public void setToolManager(ToolManager toolManager) {
+        this.toolManager = toolManager;
         repaint();
     }
 
@@ -218,35 +224,40 @@ public class GridPanel extends JPanel {
 
                     // Draw handles on corners
                     g2d.setStroke(new java.awt.BasicStroke());
-                    g2d.setColor(java.awt.Color.WHITE);
+                    boolean isFreeform = false;
+                    if (toolManager != null && toolManager.getActiveTool() != null) {
+                        String activeToolName = toolManager.getActiveTool().getName();
+                        if ("Freeform/scale".equals(activeToolName)) {
+                            isFreeform = true;
+                        }
+                    }
+
                     int handleSize = 6;
 
                     // Top-Left
-                    g2d.fillRect(px - handleSize/2, py - handleSize/2, handleSize, handleSize);
-                    g2d.setColor(java.awt.Color.BLACK);
-                    g2d.drawRect(px - handleSize/2, py - handleSize/2, handleSize, handleSize);
-
+                    drawHandle(g2d, px, py, handleSize, isFreeform);
                     // Top-Right
-                    g2d.setColor(java.awt.Color.WHITE);
-                    g2d.fillRect(px + selWidth - handleSize/2, py - handleSize/2, handleSize, handleSize);
-                    g2d.setColor(java.awt.Color.BLACK);
-                    g2d.drawRect(px + selWidth - handleSize/2, py - handleSize/2, handleSize, handleSize);
-
+                    drawHandle(g2d, px + selWidth, py, handleSize, isFreeform);
                     // Bottom-Left
-                    g2d.setColor(java.awt.Color.WHITE);
-                    g2d.fillRect(px - handleSize/2, py + selHeight - handleSize/2, handleSize, handleSize);
-                    g2d.setColor(java.awt.Color.BLACK);
-                    g2d.drawRect(px - handleSize/2, py + selHeight - handleSize/2, handleSize, handleSize);
-
+                    drawHandle(g2d, px, py + selHeight, handleSize, isFreeform);
                     // Bottom-Right
-                    g2d.setColor(java.awt.Color.WHITE);
-                    g2d.fillRect(px + selWidth - handleSize/2, py + selHeight - handleSize/2, handleSize, handleSize);
-                    g2d.setColor(java.awt.Color.BLACK);
-                    g2d.drawRect(px + selWidth - handleSize/2, py + selHeight - handleSize/2, handleSize, handleSize);
+                    drawHandle(g2d, px + selWidth, py + selHeight, handleSize, isFreeform);
 
                     g2d.dispose();
                 }
             }
+        }
+    }
+
+    private void drawHandle(java.awt.Graphics2D g2d, int cx, int cy, int size, boolean isFreeform) {
+        g2d.setColor(java.awt.Color.WHITE);
+        g2d.fillRect(cx - size/2, cy - size/2, size, size);
+        g2d.setColor(java.awt.Color.BLACK);
+        g2d.drawRect(cx - size/2, cy - size/2, size, size);
+
+        if (isFreeform) {
+            g2d.drawLine(cx - size/2, cy - size/2, cx + size/2, cy + size/2);
+            g2d.drawLine(cx + size/2, cy - size/2, cx - size/2, cy + size/2);
         }
     }
 
