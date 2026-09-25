@@ -42,6 +42,7 @@ public class EditorFrame extends JFrame {
         this.toolManager.addTool(new ShiftKeyDecorator(new BrushTool()));
         this.toolManager.addTool(new ShiftKeyDecorator(new SquareTool()));
         this.toolManager.addTool(new ShiftKeyDecorator(new CircleTool()));
+        this.toolManager.addTool(new ShiftKeyDecorator(new SelectTool()));
 
         setTitle("Swing Editor");
         setSize(800, 600);

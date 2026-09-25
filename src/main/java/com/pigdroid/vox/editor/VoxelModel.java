@@ -10,6 +10,7 @@ public class VoxelModel implements Cloneable {
     private final List<Projection> projections;
     private ReferenceSystem referenceSystem = ReferenceSystem.EUROPEAN;
     private int changeCount = 0;
+    private SelectionBox selection;
 
     public VoxelModel() {
         this.voxels = new HashMap<>();
@@ -26,6 +27,7 @@ public class VoxelModel implements Cloneable {
         this.projections.clear();
         this.projections.addAll(other.projections);
         this.referenceSystem = other.referenceSystem;
+        this.selection = other.selection != null ? other.selection.clone() : null;
         this.changeCount++;
     }
 
@@ -35,8 +37,25 @@ public class VoxelModel implements Cloneable {
         clone.voxels.putAll(this.voxels);
         clone.projections.addAll(this.projections);
         clone.referenceSystem = this.referenceSystem;
+        clone.selection = this.selection != null ? this.selection.clone() : null;
         clone.changeCount = this.changeCount;
         return clone;
+    }
+
+    public SelectionBox getSelection() {
+        return selection;
+    }
+
+    public void setSelection(SelectionBox selection) {
+        this.selection = selection;
+        this.changeCount++;
+    }
+
+    public void clearSelection() {
+        if (this.selection != null) {
+            this.selection = null;
+            this.changeCount++;
+        }
     }
 
     public ReferenceSystem getReferenceSystem() {

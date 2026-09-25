@@ -188,6 +188,66 @@ public class GridPanel extends JPanel {
         if (previewProvider != null) {
             previewProvider.accept(g);
         }
+
+        // Draw selection
+        if (model != null && viewName != null) {
+            SelectionBox sel = model.getSelection();
+            if (sel != null) {
+                Integer uMin = model.getMappedU(viewName, new Vector3D(sel.getMinX(), sel.getMinY(), sel.getMinZ()));
+                Integer vMin = model.getMappedV(viewName, new Vector3D(sel.getMinX(), sel.getMinY(), sel.getMinZ()));
+                Integer uMax = model.getMappedU(viewName, new Vector3D(sel.getMaxX(), sel.getMaxY(), sel.getMaxZ()));
+                Integer vMax = model.getMappedV(viewName, new Vector3D(sel.getMaxX(), sel.getMaxY(), sel.getMaxZ()));
+
+                if (uMin != null && vMin != null && uMax != null && vMax != null) {
+                    int drawUMin = Math.min(uMin, uMax);
+                    int drawUMax = Math.max(uMin, uMax);
+                    int drawVMin = Math.min(vMin, vMax);
+                    int drawVMax = Math.max(vMin, vMax);
+
+                    int px = gridToScreenX(drawUMin);
+                    int py = gridToScreenY(drawVMin);
+                    int selWidth = (drawUMax - drawUMin + 1) * gridSize;
+                    int selHeight = (drawVMax - drawVMin + 1) * gridSize;
+
+                    // Draw dashed outline
+                    java.awt.Graphics2D g2d = (java.awt.Graphics2D) g.create();
+                    g2d.setColor(java.awt.Color.YELLOW);
+                    float[] dash = {5.0f};
+                    g2d.setStroke(new java.awt.BasicStroke(1.5f, java.awt.BasicStroke.CAP_BUTT, java.awt.BasicStroke.JOIN_MITER, 10.0f, dash, 0.0f));
+                    g2d.drawRect(px, py, selWidth, selHeight);
+
+                    // Draw handles on corners
+                    g2d.setStroke(new java.awt.BasicStroke());
+                    g2d.setColor(java.awt.Color.WHITE);
+                    int handleSize = 6;
+
+                    // Top-Left
+                    g2d.fillRect(px - handleSize/2, py - handleSize/2, handleSize, handleSize);
+                    g2d.setColor(java.awt.Color.BLACK);
+                    g2d.drawRect(px - handleSize/2, py - handleSize/2, handleSize, handleSize);
+
+                    // Top-Right
+                    g2d.setColor(java.awt.Color.WHITE);
+                    g2d.fillRect(px + selWidth - handleSize/2, py - handleSize/2, handleSize, handleSize);
+                    g2d.setColor(java.awt.Color.BLACK);
+                    g2d.drawRect(px + selWidth - handleSize/2, py - handleSize/2, handleSize, handleSize);
+
+                    // Bottom-Left
+                    g2d.setColor(java.awt.Color.WHITE);
+                    g2d.fillRect(px - handleSize/2, py + selHeight - handleSize/2, handleSize, handleSize);
+                    g2d.setColor(java.awt.Color.BLACK);
+                    g2d.drawRect(px - handleSize/2, py + selHeight - handleSize/2, handleSize, handleSize);
+
+                    // Bottom-Right
+                    g2d.setColor(java.awt.Color.WHITE);
+                    g2d.fillRect(px + selWidth - handleSize/2, py + selHeight - handleSize/2, handleSize, handleSize);
+                    g2d.setColor(java.awt.Color.BLACK);
+                    g2d.drawRect(px + selWidth - handleSize/2, py + selHeight - handleSize/2, handleSize, handleSize);
+
+                    g2d.dispose();
+                }
+            }
+        }
     }
 
     public int getGridSize() {
@@ -197,5 +257,17 @@ public class GridPanel extends JPanel {
     public void setGridSize(int gridSize) {
         this.gridSize = gridSize;
         repaint();
+    }
+
+    public int gridToScreenX(int gridX) {
+        int width = getWidth();
+        int originX = width / 2 + panX;
+        return originX + gridX * gridSize;
+    }
+
+    public int gridToScreenY(int gridY) {
+        int height = getHeight();
+        int originY = height / 2 + panY;
+        return originY + gridY * gridSize;
     }
 }
