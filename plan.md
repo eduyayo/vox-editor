@@ -1,0 +1,4 @@
+1. **Change default axis color in Settings.java:** The user wants the default axis color to be white instead of silver gray. I will modify `src/main/java/com/pigdroid/vox/editor/Settings.java` to set the default `axisColor` to `Color.WHITE`.
+2. **Modify coordinates color in GridPanel.java:** The user wants the axis settings color to also be used for the coordinates. In `src/main/java/com/pigdroid/vox/editor/GridPanel.java`, inside the `paintComponent` method where it says `// Draw coordinates`, I will change `g.setColor(Color.DARK_GRAY);` to `g.setColor(Settings.getInstance().getAxisColor());`.
+3. **Run tests:** I will run `mvn clean test` to ensure no tests are broken and project compiles successfully. If maven fails, I will use `javac -d target/classes -cp src/main/java $(find src/main/java -name "*.java")` to ensure compilation works.
+4. **Pre commit step:** Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
