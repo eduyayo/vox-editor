@@ -33,8 +33,10 @@ public class ViewPanel extends JPanel {
         gridPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                int u = e.getX() / gridPanel.getGridSize();
-                int v = e.getY() / gridPanel.getGridSize();
+                int originX = gridPanel.getWidth() / 2 + gridPanel.getPanX();
+                int originY = gridPanel.getHeight() / 2 + gridPanel.getPanY();
+                int u = Math.floorDiv(e.getX() - originX, gridPanel.getGridSize());
+                int v = Math.floorDiv(e.getY() - originY, gridPanel.getGridSize());
                 String viewName = (String) viewSelector.getSelectedItem();
 
                 if (SwingUtilities.isLeftMouseButton(e)) {

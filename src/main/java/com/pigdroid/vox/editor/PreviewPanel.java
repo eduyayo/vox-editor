@@ -64,7 +64,7 @@ public class PreviewPanel extends JPanel {
                     if (rotateX > Math.PI / 2) rotateX = Math.PI / 2;
                     if (rotateX < -Math.PI / 2) rotateX = -Math.PI / 2;
 
-                } else if (SwingUtilities.isRightMouseButton(e)) {
+                } else if (SwingUtilities.isMiddleMouseButton(e)) {
                     // Pan
                     panX += dx;
                     panY += dy;
@@ -111,22 +111,24 @@ public class PreviewPanel extends JPanel {
         int centerY = getHeight() / 2 + (int) panY;
 
         Map<Vector3D, Integer> voxels = model.getVoxels();
-        if (voxels.isEmpty()) return;
 
         // Center the model in local coordinates
         double avgX = 0, avgY = 0, avgZ = 0;
-        for (Vector3D v : voxels.keySet()) {
-            avgX += v.x();
-            avgY += v.y();
-            avgZ += v.z();
+        if (!voxels.isEmpty()) {
+            for (Vector3D v : voxels.keySet()) {
+                avgX += v.x();
+                avgY += v.y();
+                avgZ += v.z();
+            }
+            avgX /= voxels.size();
+            avgY /= voxels.size();
+            avgZ /= voxels.size();
         }
-        avgX /= voxels.size();
-        avgY /= voxels.size();
-        avgZ /= voxels.size();
 
         List<VoxelDrawData> drawData = new ArrayList<>();
 
-        for (Map.Entry<Vector3D, Integer> entry : voxels.entrySet()) {
+        if (!voxels.isEmpty()) {
+            for (Map.Entry<Vector3D, Integer> entry : voxels.entrySet()) {
             Vector3D v = entry.getKey();
 
             // Model coordinates centered
@@ -149,7 +151,8 @@ public class PreviewPanel extends JPanel {
             // We need 3D center for sorting painter's algorithm. Deeper is larger z.
             // Wait, Z axis points towards viewer? Typically -Z is into the screen.
             // Let's sort by z2. Smaller z2 means further away.
-            drawData.add(new VoxelDrawData(centerX + px, centerY + py, z2, v));
+                drawData.add(new VoxelDrawData(centerX + px, centerY + py, z2, v));
+            }
         }
 
         // Sort by depth (painter's algorithm)
@@ -163,7 +166,8 @@ public class PreviewPanel extends JPanel {
 
         List<CubeDrawData> cubes = new ArrayList<>();
 
-        for (Map.Entry<Vector3D, Integer> entry : voxels.entrySet()) {
+        if (!voxels.isEmpty()) {
+            for (Map.Entry<Vector3D, Integer> entry : voxels.entrySet()) {
             Vector3D v = entry.getKey();
             double mx = v.x() - avgX;
             double my = v.y() - avgY; // y goes down in screen coords usually, let's keep it simple
@@ -173,7 +177,8 @@ public class PreviewPanel extends JPanel {
             double z1_center = mx * Math.sin(rotateY) + mz * Math.cos(rotateY);
             double depth_center = my * Math.sin(rotateX) + z1_center * Math.cos(rotateX);
 
-            cubes.add(new CubeDrawData(mx, my, mz, depth_center, entry.getValue()));
+                cubes.add(new CubeDrawData(mx, my, mz, depth_center, entry.getValue()));
+            }
         }
 
         cubes.sort((a, b) -> Double.compare(a.depth, b.depth));
@@ -269,6 +274,78 @@ public class PreviewPanel extends JPanel {
                 }
             }
         }
+
+        // Draw 3D Axes
+        draw3DAxis(g2d, centerX, centerY, avgX, avgY, avgZ);
+    }
+
+    private void draw3DAxis(Graphics2D g2d, int centerX, int centerY, double avgX, double avgY, double avgZ) {
+        double axisLength = 5.0;
+
+        // Origin (0,0,0) offset by avg center
+        double ox = 0 - avgX;
+        double oy = 0 - avgY;
+        double oz = 0 - avgZ;
+
+        // Helper to project 3D to 2D using existing math
+        java.util.function.BiFunction<Point3D, Color, Void> drawAxis = (endPt, col) -> {
+            double ex = endPt.x - avgX;
+            double ey = endPt.y - avgY;
+            double ez = endPt.z - avgZ;
+
+            // Origin projection
+            double ox1 = ox * Math.cos(rotateY) - oz * Math.sin(rotateY);
+            double oz1 = ox * Math.sin(rotateY) + oz * Math.cos(rotateY);
+            double oy2 = oy * Math.cos(rotateX) - oz1 * Math.sin(rotateX);
+            int pxO = (int) (centerX + ox1 * zoom);
+            int pyO = (int) (centerY - oy2 * zoom);
+
+            // End point projection
+            double ex1 = ex * Math.cos(rotateY) - ez * Math.sin(rotateY);
+            double ez1 = ex * Math.sin(rotateY) + ez * Math.cos(rotateY);
+            double ey2 = ey * Math.cos(rotateX) - ez1 * Math.sin(rotateX);
+            int pxE = (int) (centerX + ex1 * zoom);
+            int pyE = (int) (centerY - ey2 * zoom);
+
+            g2d.setColor(col);
+            g2d.setStroke(new BasicStroke(2.0f));
+            g2d.drawLine(pxO, pyO, pxE, pyE);
+            g2d.setStroke(new BasicStroke(1.0f));
+
+            return null;
+        };
+
+        // X-axis (Red)
+        drawAxis.apply(new Point3D(axisLength, 0, 0), Color.RED);
+        // Y-axis (Green)
+        drawAxis.apply(new Point3D(0, axisLength, 0), Color.GREEN);
+        // Z-axis (Blue)
+        drawAxis.apply(new Point3D(0, 0, axisLength), Color.BLUE);
+
+        // Draw labels
+        java.util.function.Consumer<Point3D> drawLabel = (pt) -> {
+            double lx = pt.x - avgX;
+            double ly = pt.y - avgY;
+            double lz = pt.z - avgZ;
+
+            double lx1 = lx * Math.cos(rotateY) - lz * Math.sin(rotateY);
+            double lz1 = lx * Math.sin(rotateY) + lz * Math.cos(rotateY);
+            double ly2 = ly * Math.cos(rotateX) - lz1 * Math.sin(rotateX);
+            int pX = (int) (centerX + lx1 * zoom);
+            int pY = (int) (centerY - ly2 * zoom);
+
+            String label = "";
+            if (pt.x > 0) label = "X";
+            if (pt.y > 0) label = "Y";
+            if (pt.z > 0) label = "Z";
+
+            g2d.setColor(Color.BLACK);
+            g2d.drawString(label, pX + 5, pY + 5);
+        };
+
+        drawLabel.accept(new Point3D(axisLength + 0.5, 0, 0));
+        drawLabel.accept(new Point3D(0, axisLength + 0.5, 0));
+        drawLabel.accept(new Point3D(0, 0, axisLength + 0.5));
     }
 
     private static class VoxelDrawData {
