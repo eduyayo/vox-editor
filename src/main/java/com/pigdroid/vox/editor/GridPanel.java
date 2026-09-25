@@ -23,7 +23,11 @@ public class GridPanel extends JPanel {
     private int lastMouseY;
 
     public GridPanel() {
-        setBackground(Color.WHITE);
+        setBackground(Settings.getInstance().getViewBackgroundColor());
+        Settings.getInstance().addSettingsListener(settings -> {
+            setBackground(settings.getViewBackgroundColor());
+            repaint();
+        });
 
         MouseAdapter ma = new MouseAdapter() {
             @Override
