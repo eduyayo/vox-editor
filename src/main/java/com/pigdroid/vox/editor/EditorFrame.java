@@ -18,13 +18,20 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
 
+import javax.swing.JToggleButton;
+import javax.swing.ButtonGroup;
+
 public class EditorFrame extends JFrame {
 
     private JPanel centerPanel;
     private VoxelModel voxelModel;
+    private ToolManager toolManager;
 
     public EditorFrame() {
         this.voxelModel = new VoxelModel();
+        this.toolManager = new ToolManager();
+        this.toolManager.addTool(new BrushTool());
+
         setTitle("Swing Editor");
         setSize(800, 600);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -121,24 +128,52 @@ public class EditorFrame extends JFrame {
     private void initMainPanels() {
         JPanel mainPanel = new JPanel(new BorderLayout());
 
-        JPanel leftPanel = new JPanel();
-        // Placeholder for tool details, buttons etc
-        leftPanel.add(new JButton("Tool 1"));
-        leftPanel.add(new JButton("Tool 2"));
+        JPanel leftPanel = new JPanel(new BorderLayout());
+        JPanel toolsPanel = new JPanel(new GridLayout(0, 1));
+        ButtonGroup toolGroup = new ButtonGroup();
+
+        for (Tool tool : toolManager.getTools()) {
+            JToggleButton toggleButton = new JToggleButton(tool.getName());
+            toggleButton.addActionListener(e -> toolManager.setActiveTool(tool.getName()));
+            toolGroup.add(toggleButton);
+            toolsPanel.add(toggleButton);
+            if (toolManager.getActiveTool() == tool) {
+                toggleButton.setSelected(true);
+            }
+        }
+
+        leftPanel.add(toolsPanel, BorderLayout.NORTH);
+
+        JPanel optionsContainer = new JPanel(new BorderLayout());
+        leftPanel.add(optionsContainer, BorderLayout.CENTER);
+
+        toolManager.addChangeListener(() -> {
+            optionsContainer.removeAll();
+            Tool active = toolManager.getActiveTool();
+            if (active != null && active.getOptionsPanel() != null) {
+                optionsContainer.add(active.getOptionsPanel(), BorderLayout.NORTH);
+            }
+            optionsContainer.revalidate();
+            optionsContainer.repaint();
+        });
+
+        // Trigger initial setup
+        toolManager.setActiveTool(toolManager.getActiveTool() != null ? toolManager.getActiveTool().getName() : "");
+
         mainPanel.add(leftPanel, BorderLayout.WEST);
 
         centerPanel = new JPanel(new GridLayout(2, 2));
 
         // Top Left: Front
-        ViewPanel frontPanel = new ViewPanel("Front", voxelModel);
+        ViewPanel frontPanel = new ViewPanel("Front", voxelModel, toolManager);
         centerPanel.add(frontPanel);
 
         // Top Right: Left
-        ViewPanel leftViewPanel = new ViewPanel("Left", voxelModel);
+        ViewPanel leftViewPanel = new ViewPanel("Left", voxelModel, toolManager);
         centerPanel.add(leftViewPanel);
 
         // Bottom Left: Top
-        ViewPanel topViewPanel = new ViewPanel("Top", voxelModel);
+        ViewPanel topViewPanel = new ViewPanel("Top", voxelModel, toolManager);
         centerPanel.add(topViewPanel);
 
         // Bottom Right: Preview
