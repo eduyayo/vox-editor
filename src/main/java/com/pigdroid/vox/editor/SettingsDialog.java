@@ -9,8 +9,11 @@ public class SettingsDialog extends JDialog {
         super(parent, "Settings", true);
         setLayout(new BorderLayout());
 
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        panel.add(new JLabel("View Background Color:"));
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+
+        JPanel bgPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        bgPanel.add(new JLabel("View Background Color:"));
 
         JButton colorButton = new JButton();
         colorButton.setPreferredSize(new Dimension(30, 30));
@@ -22,7 +25,7 @@ public class SettingsDialog extends JDialog {
                 Settings.getInstance().setViewBackgroundColor(newColor);
             }
         });
-        panel.add(colorButton);
+        bgPanel.add(colorButton);
 
         JButton resetButton = new JButton("Reset to Default");
         resetButton.addActionListener(e -> {
@@ -30,9 +33,34 @@ public class SettingsDialog extends JDialog {
             colorButton.setBackground(defaultColor);
             Settings.getInstance().setViewBackgroundColor(defaultColor);
         });
-        panel.add(resetButton);
+        bgPanel.add(resetButton);
+        mainPanel.add(bgPanel);
 
-        add(panel, BorderLayout.CENTER);
+        JPanel axisPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        axisPanel.add(new JLabel("Axis Reference Color:"));
+
+        JButton axisColorButton = new JButton();
+        axisColorButton.setPreferredSize(new Dimension(30, 30));
+        axisColorButton.setBackground(Settings.getInstance().getAxisColor());
+        axisColorButton.addActionListener(e -> {
+            Color newColor = JColorChooser.showDialog(this, "Choose Axis Reference Color", axisColorButton.getBackground());
+            if (newColor != null) {
+                axisColorButton.setBackground(newColor);
+                Settings.getInstance().setAxisColor(newColor);
+            }
+        });
+        axisPanel.add(axisColorButton);
+
+        JButton axisResetButton = new JButton("Reset to Default");
+        axisResetButton.addActionListener(e -> {
+            Color defaultColor = new Color(192, 192, 192); // Silver gray
+            axisColorButton.setBackground(defaultColor);
+            Settings.getInstance().setAxisColor(defaultColor);
+        });
+        axisPanel.add(axisResetButton);
+        mainPanel.add(axisPanel);
+
+        add(mainPanel, BorderLayout.CENTER);
 
         JButton closeButton = new JButton("Close");
         closeButton.addActionListener(e -> dispose());

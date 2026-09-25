@@ -122,7 +122,7 @@ public class GridPanel extends JPanel {
         }
 
         // Draw axes
-        g.setColor(Color.BLACK);
+        g.setColor(Settings.getInstance().getAxisColor());
         g.drawLine(originX, 0, originX, height);
         g.drawLine(0, originY, width, originY);
 
@@ -152,7 +152,7 @@ public class GridPanel extends JPanel {
                 }
             }
 
-            g.setColor(Color.BLUE);
+            g.setColor(Settings.getInstance().getAxisColor());
             FontMetrics fm = g.getFontMetrics();
 
             // Draw axis names
