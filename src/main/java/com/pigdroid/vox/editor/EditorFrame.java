@@ -11,15 +11,22 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.WindowConstants;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.swing.JToggleButton;
 import javax.swing.ButtonGroup;
+
+import com.pigdroid.vox.editor.io.VoxFile;
 
 public class EditorFrame extends JFrame {
 
@@ -54,9 +61,11 @@ public class EditorFrame extends JFrame {
 
         JMenuItem openItem = new JMenuItem("Open");
         openItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK));
+        openItem.addActionListener(e -> openFile());
 
         JMenuItem saveItem = new JMenuItem("Save");
         saveItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
+        saveItem.addActionListener(e -> saveFile());
 
         JMenuItem exitItem = new JMenuItem("Exit");
         exitItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK));
@@ -116,8 +125,13 @@ public class EditorFrame extends JFrame {
         JToolBar toolBar = new JToolBar();
         toolBar.setFloatable(false);
 
-        toolBar.add(new JButton("Open"));
-        toolBar.add(new JButton("Save"));
+        JButton openBtn = new JButton("Open");
+        openBtn.addActionListener(e -> openFile());
+        toolBar.add(openBtn);
+
+        JButton saveBtn = new JButton("Save");
+        saveBtn.addActionListener(e -> saveFile());
+        toolBar.add(saveBtn);
         toolBar.addSeparator();
         toolBar.add(new JButton("Undo"));
         toolBar.add(new JButton("Redo"));
@@ -199,6 +213,43 @@ public class EditorFrame extends JFrame {
         mainPanel.add(centerPanel, BorderLayout.CENTER);
 
         add(mainPanel, BorderLayout.CENTER);
+    }
+
+    private void openFile() {
+        JFileChooser chooser = new JFileChooser();
+        int ret = chooser.showOpenDialog(this);
+        if (ret == JFileChooser.APPROVE_OPTION) {
+            File file = chooser.getSelectedFile();
+            try {
+                VoxelModel newModel = VoxFile.read(file);
+                // Clear existing and copy
+                new ArrayList<>(this.voxelModel.getVoxels().keySet()).forEach(v -> this.voxelModel.removeVoxel(v.x(), v.y(), v.z()));
+                newModel.getVoxels().forEach((v, c) -> this.voxelModel.setVoxel(v.x(), v.y(), v.z(), c));
+
+                // Keep the current reference system, and clear projections
+                new ArrayList<>(this.voxelModel.getProjections()).forEach(p -> this.voxelModel.deleteProjection(p.viewName(), p.u(), p.v()));
+
+                repaint();
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(this, "Failed to open file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void saveFile() {
+        JFileChooser chooser = new JFileChooser();
+        int ret = chooser.showSaveDialog(this);
+        if (ret == JFileChooser.APPROVE_OPTION) {
+            File file = chooser.getSelectedFile();
+            if (!file.getName().toLowerCase().endsWith(".vox")) {
+                file = new File(file.getParentFile(), file.getName() + ".vox");
+            }
+            try {
+                VoxFile.write(this.voxelModel, file);
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(this, "Failed to save file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 
     // Package-private or protected so we can access it from tests if needed
