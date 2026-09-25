@@ -93,6 +93,19 @@ public class EditorFrame extends JFrame {
 
         menuBar.add(fileMenu);
         menuBar.add(editMenu);
+        // Window Menu
+        JMenu windowMenu = new JMenu("Window");
+        windowMenu.setMnemonic(KeyEvent.VK_W);
+
+        JMenuItem settingsItem = new JMenuItem("Settings...");
+        settingsItem.addActionListener(e -> {
+            SettingsDialog dialog = new SettingsDialog(this);
+            dialog.setVisible(true);
+        });
+
+        windowMenu.add(settingsItem);
+
+        menuBar.add(windowMenu);
 
         setJMenuBar(menuBar);
     }
