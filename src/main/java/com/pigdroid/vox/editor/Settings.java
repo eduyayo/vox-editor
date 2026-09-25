@@ -7,6 +7,7 @@ import java.util.List;
 public class Settings {
     private static Settings instance;
     private Color viewBackgroundColor = Color.DARK_GRAY;
+    private Color axisColor = new Color(192, 192, 192); // Silver gray
     private List<SettingsListener> listeners = new ArrayList<>();
 
     private Settings() {}
@@ -25,6 +26,17 @@ public class Settings {
     public void setViewBackgroundColor(Color color) {
         if (!this.viewBackgroundColor.equals(color)) {
             this.viewBackgroundColor = color;
+            fireSettingsChanged();
+        }
+    }
+
+    public Color getAxisColor() {
+        return axisColor;
+    }
+
+    public void setAxisColor(Color color) {
+        if (!this.axisColor.equals(color)) {
+            this.axisColor = color;
             fireSettingsChanged();
         }
     }
