@@ -14,7 +14,7 @@ public class ViewPanel extends JPanel {
     private GridPanel gridPanel;
     private VoxelModel model;
 
-    public ViewPanel(String initialView, VoxelModel model) {
+    public ViewPanel(String initialView, VoxelModel model, ToolManager toolManager) {
         this.model = model;
         setLayout(new BorderLayout());
 
@@ -30,23 +30,34 @@ public class ViewPanel extends JPanel {
 
         gridPanel.setModel(model, () -> (String) viewSelector.getSelectedItem());
 
-        gridPanel.addMouseListener(new MouseAdapter() {
+        MouseAdapter ma = new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
-                int originX = gridPanel.getWidth() / 2 + gridPanel.getPanX();
-                int originY = gridPanel.getHeight() / 2 + gridPanel.getPanY();
-                int u = Math.floorDiv(e.getX() - originX, gridPanel.getGridSize());
-                int v = Math.floorDiv(e.getY() - originY, gridPanel.getGridSize());
-                String viewName = (String) viewSelector.getSelectedItem();
-
-                if (SwingUtilities.isLeftMouseButton(e)) {
-                    model.addProjection(viewName, u, v);
-                } else if (SwingUtilities.isRightMouseButton(e)) {
-                    model.deleteProjection(viewName, u, v);
+            public void mousePressed(MouseEvent e) {
+                Tool tool = toolManager.getActiveTool();
+                if (tool != null) {
+                    tool.onMousePressed(e, (String) viewSelector.getSelectedItem(), model, gridPanel);
                 }
-                SwingUtilities.getWindowAncestor(gridPanel).repaint();
             }
-        });
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                Tool tool = toolManager.getActiveTool();
+                if (tool != null) {
+                    tool.onMouseDragged(e, (String) viewSelector.getSelectedItem(), model, gridPanel);
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                Tool tool = toolManager.getActiveTool();
+                if (tool != null) {
+                    tool.onMouseReleased(e);
+                }
+            }
+        };
+
+        gridPanel.addMouseListener(ma);
+        gridPanel.addMouseMotionListener(ma);
 
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topPanel.add(viewSelector);

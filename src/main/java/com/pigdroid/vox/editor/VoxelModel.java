@@ -91,8 +91,22 @@ public class VoxelModel {
         return new ArrayList<>(projections);
     }
 
-    public void addProjection(String viewName, int u, int v) {
-        Projection newProjection = new Projection(viewName, u, v);
+    public void addProjection(String viewName, int u, int v, int colorValue) {
+        for (Projection p : projections) {
+            if (p.viewName().equals(viewName) && p.u() == u && p.v() == v) {
+                // If it exists with a different color, we could update it,
+                // but let's prevent adding multiple for the same position.
+                // To allow painting over, we should remove the old and add the new,
+                // or just update it. For now, we'll avoid duplicate list growth.
+                if (p.color() == colorValue) return;
+
+                // Let's remove the old one to replace it with the new color
+                projections.remove(p);
+                break;
+            }
+        }
+
+        Projection newProjection = new Projection(viewName, u, v, colorValue);
         projections.add(newProjection);
 
         for (Projection p : projections) {
@@ -160,7 +174,7 @@ public class VoxelModel {
             }
 
             if (!conflict && x != null && y != null && z != null) {
-                setVoxel(x, y, z, 1);
+                setVoxel(x, y, z, colorValue);
             }
         }
     }
