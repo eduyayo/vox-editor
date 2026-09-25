@@ -125,7 +125,7 @@ public class EditorFrame extends JFrame {
         centerPanel.add(topViewPanel);
 
         // Bottom Right: Preview
-        JPanel previewPanel = new JPanel();
+        PreviewPanel previewPanel = new PreviewPanel(voxelModel);
         previewPanel.setBorder(BorderFactory.createTitledBorder("Preview"));
         centerPanel.add(previewPanel);
 
