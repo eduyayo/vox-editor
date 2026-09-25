@@ -28,6 +28,7 @@ public class VoxelModel {
             // XY is floor, Z is up
             switch (viewName) {
                 case "Front": return v.x();
+                case "Back": return v.x();
                 case "Top": return v.x();
                 case "Bottom": return v.x();
                 case "Left": return v.y();
@@ -38,6 +39,7 @@ public class VoxelModel {
             // AMERICAN: XZ is floor, Y is up
             switch (viewName) {
                 case "Front": return v.x();
+                case "Back": return v.x();
                 case "Top": return v.x();
                 case "Bottom": return v.x();
                 case "Left": return v.z();
@@ -52,6 +54,7 @@ public class VoxelModel {
             // XY is floor, Z is up
             switch (viewName) {
                 case "Front": return v.z();
+                case "Back": return v.z();
                 case "Top": return v.y();
                 case "Bottom": return v.y();
                 case "Left": return v.z();
@@ -62,6 +65,7 @@ public class VoxelModel {
             // AMERICAN: XZ is floor, Y is up
             switch (viewName) {
                 case "Front": return v.y();
+                case "Back": return v.y();
                 case "Top": return v.z();
                 case "Bottom": return v.z();
                 case "Left": return v.y();
@@ -105,7 +109,8 @@ public class VoxelModel {
             // Resolve from new projection
             if (referenceSystem == ReferenceSystem.EUROPEAN) {
                 switch (newProjection.viewName()) {
-                    case "Front": x = newProjection.u(); z = newProjection.v(); break;
+                    case "Front":
+                    case "Back": x = newProjection.u(); z = newProjection.v(); break;
                     case "Top": x = newProjection.u(); y = newProjection.v(); break;
                     case "Bottom": x = newProjection.u(); y = newProjection.v(); break;
                     case "Left": y = newProjection.u(); z = newProjection.v(); break;
@@ -113,7 +118,8 @@ public class VoxelModel {
                 }
             } else {
                 switch (newProjection.viewName()) {
-                    case "Front": x = newProjection.u(); y = newProjection.v(); break;
+                    case "Front":
+                    case "Back": x = newProjection.u(); y = newProjection.v(); break;
                     case "Top": x = newProjection.u(); z = newProjection.v(); break;
                     case "Bottom": x = newProjection.u(); z = newProjection.v(); break;
                     case "Left": z = newProjection.u(); y = newProjection.v(); break;
@@ -126,6 +132,7 @@ public class VoxelModel {
             if (referenceSystem == ReferenceSystem.EUROPEAN) {
                 switch (p.viewName()) {
                     case "Front":
+                    case "Back":
                         if (x != null && x != p.u()) conflict = true; else x = p.u();
                         if (z != null && z != p.v()) conflict = true; else z = p.v();
                         break;
@@ -143,6 +150,7 @@ public class VoxelModel {
             } else {
                 switch (p.viewName()) {
                     case "Front":
+                    case "Back":
                         if (x != null && x != p.u()) conflict = true; else x = p.u();
                         if (y != null && y != p.v()) conflict = true; else y = p.v();
                         break;
