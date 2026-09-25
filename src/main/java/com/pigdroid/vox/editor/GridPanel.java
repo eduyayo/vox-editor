@@ -124,6 +124,7 @@ public class GridPanel extends JPanel {
             if (isEuropean) {
                 switch (viewName) {
                     case "Front": uAxis = "X"; vAxis = "Z"; break;
+                    case "Back": uAxis = "X"; vAxis = "Z"; break;
                     case "Top": uAxis = "X"; vAxis = "Y"; break;
                     case "Bottom": uAxis = "X"; vAxis = "Y"; break;
                     case "Left": uAxis = "Y"; vAxis = "Z"; break;
@@ -132,6 +133,7 @@ public class GridPanel extends JPanel {
             } else { // AMERICAN
                 switch (viewName) {
                     case "Front": uAxis = "X"; vAxis = "Y"; break;
+                    case "Back": uAxis = "X"; vAxis = "Y"; break;
                     case "Top": uAxis = "X"; vAxis = "Z"; break;
                     case "Bottom": uAxis = "X"; vAxis = "Z"; break;
                     case "Left": uAxis = "Z"; vAxis = "Y"; break;
