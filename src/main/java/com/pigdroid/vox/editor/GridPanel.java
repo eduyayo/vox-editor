@@ -9,11 +9,13 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.SwingUtilities;
 import java.awt.FontMetrics;
+import java.util.function.Consumer;
 
 public class GridPanel extends JPanel {
     private int gridSize = 20;
     private VoxelModel model;
     private Supplier<String> viewNameSupplier;
+    private Consumer<Graphics> previewProvider;
 
     private int panX = 0;
     private int panY = 0;
@@ -21,7 +23,11 @@ public class GridPanel extends JPanel {
     private int lastMouseY;
 
     public GridPanel() {
-        setBackground(Color.WHITE);
+        setBackground(Settings.getInstance().getViewBackgroundColor());
+        Settings.getInstance().addSettingsListener(settings -> {
+            setBackground(settings.getViewBackgroundColor());
+            repaint();
+        });
 
         MouseAdapter ma = new MouseAdapter() {
             @Override
@@ -58,6 +64,11 @@ public class GridPanel extends JPanel {
     public void setModel(VoxelModel model, Supplier<String> viewNameSupplier) {
         this.model = model;
         this.viewNameSupplier = viewNameSupplier;
+        repaint();
+    }
+
+    public void setPreviewProvider(Consumer<Graphics> previewProvider) {
+        this.previewProvider = previewProvider;
         repaint();
     }
 
@@ -172,6 +183,10 @@ public class GridPanel extends JPanel {
                     g.drawLine(originX - 3, y, originX + 3, y);
                 }
             }
+        }
+
+        if (previewProvider != null) {
+            previewProvider.accept(g);
         }
     }
 

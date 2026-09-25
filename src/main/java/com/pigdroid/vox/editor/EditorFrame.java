@@ -38,6 +38,8 @@ public class EditorFrame extends JFrame {
         this.voxelModel = new VoxelModel();
         this.toolManager = new ToolManager();
         this.toolManager.addTool(new BrushTool());
+        this.toolManager.addTool(new SquareTool());
+        this.toolManager.addTool(new CircleTool());
 
         setTitle("Swing Editor");
         setSize(800, 600);
@@ -102,6 +104,19 @@ public class EditorFrame extends JFrame {
 
         menuBar.add(fileMenu);
         menuBar.add(editMenu);
+        // Window Menu
+        JMenu windowMenu = new JMenu("Window");
+        windowMenu.setMnemonic(KeyEvent.VK_W);
+
+        JMenuItem settingsItem = new JMenuItem("Settings...");
+        settingsItem.addActionListener(e -> {
+            SettingsDialog dialog = new SettingsDialog(this);
+            dialog.setVisible(true);
+        });
+
+        windowMenu.add(settingsItem);
+
+        menuBar.add(windowMenu);
 
         setJMenuBar(menuBar);
     }

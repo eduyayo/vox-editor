@@ -30,7 +30,11 @@ public class PreviewPanel extends JPanel {
     public PreviewPanel(VoxelModel model) {
         this.model = model;
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
+        setBackground(Settings.getInstance().getViewBackgroundColor());
+        Settings.getInstance().addSettingsListener(settings -> {
+            setBackground(settings.getViewBackgroundColor());
+            repaint();
+        });
 
         // Top panel for reset button
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
