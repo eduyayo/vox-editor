@@ -1,4 +1,4 @@
-package com.example.swingeditor;
+package com.pigdroid.vox.editor;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
