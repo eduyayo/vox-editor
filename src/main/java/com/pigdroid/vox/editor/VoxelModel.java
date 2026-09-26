@@ -11,10 +11,31 @@ public class VoxelModel implements Cloneable {
     private ReferenceSystem referenceSystem = ReferenceSystem.EUROPEAN;
     private int changeCount = 0;
     private SelectionBox selection;
+    private Map<String, SliceState> sliceStates = new HashMap<>();
+
+    public static class SliceState implements Cloneable {
+        public boolean vEnabled = false;
+        public boolean hEnabled = false;
+        public int vLine = 0;
+        public int hLine = 0;
+
+        @Override
+        public SliceState clone() {
+            try {
+                return (SliceState) super.clone();
+            } catch (CloneNotSupportedException e) {
+                return new SliceState();
+            }
+        }
+    }
 
     public VoxelModel() {
         this.voxels = new HashMap<>();
         this.projections = new ArrayList<>();
+        String[] views = {"Front", "Back", "Top", "Bottom", "Left", "Right"};
+        for (String view : views) {
+            sliceStates.put(view, new SliceState());
+        }
     }
 
     public int getChangeCount() {
@@ -28,6 +49,10 @@ public class VoxelModel implements Cloneable {
         this.projections.addAll(other.projections);
         this.referenceSystem = other.referenceSystem;
         this.selection = other.selection != null ? other.selection.clone() : null;
+        this.sliceStates.clear();
+        for (Map.Entry<String, SliceState> entry : other.sliceStates.entrySet()) {
+            this.sliceStates.put(entry.getKey(), entry.getValue().clone());
+        }
         this.changeCount++;
     }
 
@@ -38,6 +63,10 @@ public class VoxelModel implements Cloneable {
         clone.projections.addAll(this.projections);
         clone.referenceSystem = this.referenceSystem;
         clone.selection = this.selection != null ? this.selection.clone() : null;
+        clone.sliceStates = new HashMap<>();
+        for (Map.Entry<String, SliceState> entry : this.sliceStates.entrySet()) {
+            clone.sliceStates.put(entry.getKey(), entry.getValue().clone());
+        }
         clone.changeCount = this.changeCount;
         return clone;
     }
@@ -56,6 +85,37 @@ public class VoxelModel implements Cloneable {
             this.selection = null;
             this.changeCount++;
         }
+    }
+
+    public SliceState getSliceState(String viewName) {
+        return sliceStates.get(viewName);
+    }
+
+    public void setSliceState(String viewName, SliceState state) {
+        sliceStates.put(viewName, state);
+        changeCount++;
+    }
+
+    public boolean isGhosted(Vector3D v) {
+        for (Map.Entry<String, SliceState> entry : sliceStates.entrySet()) {
+            String viewName = entry.getKey();
+            SliceState state = entry.getValue();
+
+            if (!state.vEnabled && !state.hEnabled) continue;
+
+            Integer mappedU = getMappedU(viewName, v);
+            Integer mappedV = getMappedV(viewName, v);
+
+            if (mappedU == null || mappedV == null) continue;
+
+            if (state.vEnabled && mappedU <= state.vLine) {
+                return true;
+            }
+            if (state.hEnabled && mappedV <= state.hLine) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public ReferenceSystem getReferenceSystem() {
@@ -236,12 +296,17 @@ public class VoxelModel implements Cloneable {
             }
 
             if (!conflict && x != null && y != null && z != null) {
-                setVoxel(x, y, z, colorValue);
+                Vector3D candidate = new Vector3D(x, y, z);
+                if (!isGhosted(candidate)) {
+                    setVoxel(x, y, z, colorValue);
+                }
             }
         }
     }
 
     public void deleteProjection(String viewName, int u, int v) {
+        // We do NOT check isGhosted here because projections don't have enough 3D coordinates.
+        // We just delete the projection.
         boolean removed = projections.removeIf(p -> p.viewName().equals(viewName) && p.u() == u && p.v() == v);
         if (removed) {
             changeCount++;
@@ -249,6 +314,7 @@ public class VoxelModel implements Cloneable {
 
         List<Vector3D> toRemove = new ArrayList<>();
         for (Vector3D voxel : voxels.keySet()) {
+            if (isGhosted(voxel)) continue;
             Integer mappedU = getMappedU(viewName, voxel);
             Integer mappedV = getMappedV(viewName, voxel);
             if (mappedU != null && mappedU == u && mappedV != null && mappedV == v) {

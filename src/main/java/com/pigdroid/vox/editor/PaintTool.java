@@ -68,6 +68,7 @@ public class PaintTool implements Tool {
             List<Vector3D> toUpdate = new ArrayList<>();
             for (Map.Entry<Vector3D, Integer> entry : model.getVoxels().entrySet()) {
                 Vector3D vec = entry.getKey();
+                if (model.isGhosted(vec)) continue;
                 Integer mappedU = model.getMappedU(viewName, vec);
                 Integer mappedV = model.getMappedV(viewName, vec);
                 if (mappedU != null && mappedV != null && mappedU == u && mappedV == v) {

@@ -88,6 +88,7 @@ public class FreeformTool implements Tool {
             boolean hasVoxels = false;
 
             for (Vector3D v : model.getVoxels().keySet()) {
+                if (model.isGhosted(v)) continue;
                 if (v.x() < gMinX) gMinX = v.x();
                 if (v.x() > gMaxX) gMaxX = v.x();
                 if (v.y() < gMinY) gMinY = v.y();

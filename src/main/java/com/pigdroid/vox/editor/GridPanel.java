@@ -24,6 +24,9 @@ public class GridPanel extends JPanel {
     private int lastMouseX;
     private int lastMouseY;
 
+    private boolean draggingVSlice = false;
+    private boolean draggingHSlice = false;
+
     public GridPanel() {
         setBackground(Settings.getInstance().getViewBackgroundColor());
         Settings.getInstance().addSettingsListener(settings -> {
@@ -36,11 +39,38 @@ public class GridPanel extends JPanel {
             public void mousePressed(MouseEvent e) {
                 lastMouseX = e.getX();
                 lastMouseY = e.getY();
+
+                if (model != null && viewNameSupplier != null && viewNameSupplier.get() != null) {
+                    VoxelModel.SliceState state = model.getSliceState(viewNameSupplier.get());
+                    if (state != null) {
+                        if (state.vEnabled && isHoveringVSlice(e)) {
+                            draggingVSlice = true;
+                        } else if (state.hEnabled && isHoveringHSlice(e)) {
+                            draggingHSlice = true;
+                        }
+                    }
+                }
             }
 
             @Override
             public void mouseDragged(MouseEvent e) {
-                if (SwingUtilities.isMiddleMouseButton(e)) {
+                if (draggingVSlice || draggingHSlice) {
+                    if (model != null && viewNameSupplier != null && viewNameSupplier.get() != null) {
+                        VoxelModel.SliceState state = model.getSliceState(viewNameSupplier.get());
+                        if (state != null) {
+                            int originX = getWidth() / 2 + panX;
+                            int originY = getHeight() / 2 + panY;
+                            if (draggingVSlice) {
+                                state.vLine = Math.floorDiv(e.getX() - originX, gridSize);
+                            }
+                            if (draggingHSlice) {
+                                state.hLine = Math.floorDiv(originY - e.getY(), gridSize);
+                            }
+                            model.setSliceState(viewNameSupplier.get(), state);
+                            repaint();
+                        }
+                    }
+                } else if (SwingUtilities.isMiddleMouseButton(e)) {
                     int dx = e.getX() - lastMouseX;
                     int dy = e.getY() - lastMouseY;
                     setPanX(panX + dx);
@@ -48,6 +78,12 @@ public class GridPanel extends JPanel {
                     lastMouseX = e.getX();
                     lastMouseY = e.getY();
                 }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                draggingVSlice = false;
+                draggingHSlice = false;
             }
 
             @Override
@@ -79,6 +115,42 @@ public class GridPanel extends JPanel {
             firePropertyChange("panX", oldPanX, this.panX);
             repaint();
         }
+    }
+
+    public boolean isDraggingSlice() {
+        return draggingVSlice || draggingHSlice;
+    }
+
+    public boolean isHoveringSliceHandle(MouseEvent e) {
+        if (model == null || viewNameSupplier == null || viewNameSupplier.get() == null) return false;
+        VoxelModel.SliceState state = model.getSliceState(viewNameSupplier.get());
+        if (state == null) return false;
+
+        return (state.vEnabled && isHoveringVSlice(e)) || (state.hEnabled && isHoveringHSlice(e));
+    }
+
+    private boolean isHoveringVSlice(MouseEvent e) {
+        VoxelModel.SliceState state = model.getSliceState(viewNameSupplier.get());
+        if (state == null) return false;
+
+        int hx = gridToScreenX(state.vLine) - 5;
+        int hy = getHeight() - 20; // Bottom left area of the view
+        int hw = 10;
+        int hh = 20;
+
+        return e.getX() >= hx && e.getX() <= hx + hw && e.getY() >= hy && e.getY() <= hy + hh;
+    }
+
+    private boolean isHoveringHSlice(MouseEvent e) {
+        VoxelModel.SliceState state = model.getSliceState(viewNameSupplier.get());
+        if (state == null) return false;
+
+        int hx = 0; // Left area of the view
+        int hy = gridToScreenY(state.hLine) - 5;
+        int hw = 20;
+        int hh = 10;
+
+        return e.getX() >= hx && e.getX() <= hx + hw && e.getY() >= hy && e.getY() <= hy + hh;
     }
 
     public void setPanY(int panY) {
@@ -135,21 +207,47 @@ public class GridPanel extends JPanel {
             viewName = viewNameSupplier.get();
             if (viewName != null) {
                 // Draw projections
-                g.setColor(Color.CYAN);
                 for (Projection p : model.getProjections()) {
                     if (viewName.equals(p.viewName())) {
+                        // For projections we don't have true 3D coordinates, so we can't fully know if it's ghosted
+                        // based on other views, but we know it's a projection.
+                        g.setColor(Color.CYAN);
                         g.fillRect(gridToScreenX(p.u()), gridToScreenY(p.v()), gridSize, gridSize);
                     }
                 }
 
                 // Draw mapped voxels
-                g.setColor(Color.RED);
                 for (Vector3D v : model.getVoxels().keySet()) {
                     Integer mappedU = model.getMappedU(viewName, v);
                     Integer mappedV = model.getMappedV(viewName, v);
 
                     if (mappedU != null && mappedV != null) {
+                        boolean ghosted = model.isGhosted(v);
+                        if (ghosted) {
+                            g.setColor(new Color(255, 0, 0, 100)); // semi-transparent red
+                        } else {
+                            g.setColor(Color.RED);
+                        }
                         g.fillRect(gridToScreenX(mappedU), gridToScreenY(mappedV), gridSize, gridSize);
+                    }
+                }
+
+                // Draw slice planes
+                VoxelModel.SliceState state = model.getSliceState(viewName);
+                if (state != null) {
+                    if (state.vEnabled) {
+                        g.setColor(Color.BLUE);
+                        int lx = gridToScreenX(state.vLine);
+                        g.drawLine(lx, 0, lx, height);
+                        // handle
+                        g.fillRect(lx - 5, height - 20, 10, 20);
+                    }
+                    if (state.hEnabled) {
+                        g.setColor(Color.BLUE);
+                        int ly = gridToScreenY(state.hLine);
+                        g.drawLine(0, ly, width, ly);
+                        // handle
+                        g.fillRect(0, ly - 5, 20, 10);
                     }
                 }
             }
