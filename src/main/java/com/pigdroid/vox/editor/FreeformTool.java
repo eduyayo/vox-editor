@@ -159,7 +159,7 @@ public class FreeformTool implements Tool {
         int gridSize = gridPanel.getGridSize();
 
         int currentGridU = Math.floorDiv(e.getX() - originX, gridSize);
-        int currentGridV = Math.floorDiv(e.getY() - originY, gridSize);
+        int currentGridV = Math.floorDiv(originY - e.getY(), gridSize);
 
         updateScale(currentGridU, currentGridV);
         gridPanel.repaint();
@@ -173,7 +173,7 @@ public class FreeformTool implements Tool {
             int gridSize = currentGridPanel.getGridSize();
 
             int currentGridU = Math.floorDiv(e.getX() - originX, gridSize);
-            int currentGridV = Math.floorDiv(e.getY() - originY, gridSize);
+            int currentGridV = Math.floorDiv(originY - e.getY(), gridSize);
 
             updateScale(currentGridU, currentGridV);
             if (currentGridPanel != null) {
