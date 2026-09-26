@@ -155,6 +155,25 @@ public class GridPanel extends JPanel {
             }
         }
 
+        // Draw bigger grid
+        int biggerGridSpacing = Settings.getInstance().getBiggerGridSpacing();
+        if (biggerGridSpacing > 0) {
+            g.setColor(Settings.getInstance().getAxisColor());
+            int step = biggerGridSpacing * gridSize;
+
+            int startX2 = (originX % step);
+            if (startX2 < 0) startX2 += step;
+            for (int x = startX2; x < width; x += step) {
+                g.drawLine(x, 0, x, height);
+            }
+
+            int startY2 = (originY % step);
+            if (startY2 < 0) startY2 += step;
+            for (int y = startY2; y < height; y += step) {
+                g.drawLine(0, y, width, y);
+            }
+        }
+
         // Draw axes
         g.setColor(Settings.getInstance().getAxisColor());
         g.drawLine(originX, 0, originX, height);

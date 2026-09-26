@@ -8,6 +8,7 @@ public class Settings {
     private static Settings instance;
     private Color viewBackgroundColor = Color.DARK_GRAY;
     private Color axisColor = Color.WHITE; // White
+    private int biggerGridSpacing = 10;
     private List<SettingsListener> listeners = new ArrayList<>();
 
     private Settings() {}
@@ -26,6 +27,17 @@ public class Settings {
     public void setViewBackgroundColor(Color color) {
         if (!this.viewBackgroundColor.equals(color)) {
             this.viewBackgroundColor = color;
+            fireSettingsChanged();
+        }
+    }
+
+    public int getBiggerGridSpacing() {
+        return biggerGridSpacing;
+    }
+
+    public void setBiggerGridSpacing(int spacing) {
+        if (this.biggerGridSpacing != spacing) {
+            this.biggerGridSpacing = spacing;
             fireSettingsChanged();
         }
     }
