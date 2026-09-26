@@ -299,6 +299,36 @@ public class VoxelModel implements Cloneable {
                 Vector3D candidate = new Vector3D(x, y, z);
                 if (!isGhosted(candidate)) {
                     setVoxel(x, y, z, colorValue);
+                } else {
+                    int dx = 0, dy = 0, dz = 0;
+                    if (referenceSystem == ReferenceSystem.EUROPEAN) {
+                        switch (newProjection.viewName()) {
+                            case "Front": dy = 1; break;
+                            case "Back": dy = -1; break;
+                            case "Top": dz = -1; break;
+                            case "Bottom": dz = 1; break;
+                            case "Left": dx = 1; break;
+                            case "Right": dx = -1; break;
+                        }
+                    } else {
+                        switch (newProjection.viewName()) {
+                            case "Front": dz = 1; break;
+                            case "Back": dz = -1; break;
+                            case "Top": dy = -1; break;
+                            case "Bottom": dy = 1; break;
+                            case "Left": dx = 1; break;
+                            case "Right": dx = -1; break;
+                        }
+                    }
+                    int cx = x; int cy = y; int cz = z;
+                    for (int i = 0; i < 100; i++) {
+                        cx += dx; cy += dy; cz += dz;
+                        Vector3D movedCandidate = new Vector3D(cx, cy, cz);
+                        if (!isGhosted(movedCandidate)) {
+                            setVoxel(cx, cy, cz, colorValue);
+                            break;
+                        }
+                    }
                 }
             }
         }
