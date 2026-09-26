@@ -41,6 +41,8 @@ public class EditorFrame extends JFrame {
         this.toolManager = new ToolManager();
         this.undoManager = new UndoManager();
         this.toolManager.addTool(new ShiftKeyDecorator(new BrushTool()));
+        this.toolManager.addTool(new ShiftKeyDecorator(new PaintTool()));
+        this.toolManager.addTool(new FillTool()); // FillTool doesn't need ShiftKeyDecorator as it triggers on press
         this.toolManager.addTool(new ShiftKeyDecorator(new SquareTool()));
         this.toolManager.addTool(new ShiftKeyDecorator(new CircleTool()));
         this.toolManager.addTool(new ShiftKeyDecorator(new SelectTool()));
@@ -174,18 +176,35 @@ public class EditorFrame extends JFrame {
         JPanel mainPanel = new JPanel(new BorderLayout());
 
         JPanel leftPanel = new JPanel(new BorderLayout());
-        JPanel toolsPanel = new JPanel(new GridLayout(0, 1));
+
+        JPanel toolsPanel = new JPanel();
+        toolsPanel.setLayout(new javax.swing.BoxLayout(toolsPanel, javax.swing.BoxLayout.Y_AXIS));
+
+        JPanel drawingToolsPanel = new JPanel(new GridLayout(0, 1));
+        drawingToolsPanel.setBorder(BorderFactory.createTitledBorder("Draw"));
+        JPanel modifyToolsPanel = new JPanel(new GridLayout(0, 1));
+        modifyToolsPanel.setBorder(BorderFactory.createTitledBorder("Modify"));
+
         ButtonGroup toolGroup = new ButtonGroup();
 
         for (Tool tool : toolManager.getTools()) {
             JToggleButton toggleButton = new JToggleButton(tool.getName());
             toggleButton.addActionListener(e -> toolManager.setActiveTool(tool.getName()));
             toolGroup.add(toggleButton);
-            toolsPanel.add(toggleButton);
+
+            if (tool.getName().equals("Brush") || tool.getName().equals("Paint") || tool.getName().equals("Fill") || tool.getName().equals("Square") || tool.getName().equals("Circle")) {
+                drawingToolsPanel.add(toggleButton);
+            } else {
+                modifyToolsPanel.add(toggleButton);
+            }
+
             if (toolManager.getActiveTool() == tool) {
                 toggleButton.setSelected(true);
             }
         }
+
+        toolsPanel.add(drawingToolsPanel);
+        toolsPanel.add(modifyToolsPanel);
 
         leftPanel.add(toolsPanel, BorderLayout.NORTH);
 

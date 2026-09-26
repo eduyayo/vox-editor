@@ -76,7 +76,7 @@ public class ShiftKeyDecorator implements Tool {
         int newX = e.getX();
         int newY = e.getY();
 
-        if (wrapped.getName().equals("Brush")) {
+        if (wrapped.getName().equals("Brush") || wrapped.getName().equals("Paint")) {
             if (lockedDirection == Direction.NONE) {
                 if (absDGridX > 0 || absDGridY > 0) {
                     if (absDGridX > absDGridY * 2) {
