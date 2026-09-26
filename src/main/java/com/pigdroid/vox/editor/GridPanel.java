@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import javax.swing.SwingUtilities;
 import java.awt.FontMetrics;
 import java.util.function.Consumer;
@@ -42,16 +43,25 @@ public class GridPanel extends JPanel {
                 if (SwingUtilities.isMiddleMouseButton(e)) {
                     int dx = e.getX() - lastMouseX;
                     int dy = e.getY() - lastMouseY;
-                    panX += dx;
-                    panY += dy;
+                    setPanX(panX + dx);
+                    setPanY(panY + dy);
                     lastMouseX = e.getX();
                     lastMouseY = e.getY();
-                    repaint();
+                }
+            }
+
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                if (e.getWheelRotation() < 0) {
+                    setGridSize(Math.min(100, gridSize + 2)); // zoom in
+                } else {
+                    setGridSize(Math.max(5, gridSize - 2)); // zoom out
                 }
             }
         };
         addMouseListener(ma);
         addMouseMotionListener(ma);
+        addMouseWheelListener(ma);
     }
 
     public int getPanX() {
@@ -60,6 +70,24 @@ public class GridPanel extends JPanel {
 
     public int getPanY() {
         return panY;
+    }
+
+    public void setPanX(int panX) {
+        if (this.panX != panX) {
+            int oldPanX = this.panX;
+            this.panX = panX;
+            firePropertyChange("panX", oldPanX, this.panX);
+            repaint();
+        }
+    }
+
+    public void setPanY(int panY) {
+        if (this.panY != panY) {
+            int oldPanY = this.panY;
+            this.panY = panY;
+            firePropertyChange("panY", oldPanY, this.panY);
+            repaint();
+        }
     }
 
     public void setModel(VoxelModel model, Supplier<String> viewNameSupplier) {
@@ -266,8 +294,12 @@ public class GridPanel extends JPanel {
     }
 
     public void setGridSize(int gridSize) {
-        this.gridSize = gridSize;
-        repaint();
+        if (this.gridSize != gridSize) {
+            int oldSize = this.gridSize;
+            this.gridSize = gridSize;
+            firePropertyChange("gridSize", oldSize, this.gridSize);
+            repaint();
+        }
     }
 
     public int gridToScreenX(int gridX) {
