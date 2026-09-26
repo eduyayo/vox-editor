@@ -121,7 +121,35 @@ public class VoxelModel implements Cloneable {
         }
     }
 
+    public boolean isUvInsideSelection(String viewName, int u, int v) {
+        if (selection == null) return true;
+
+        Vector3D minVec = new Vector3D(selection.getMinX(), selection.getMinY(), selection.getMinZ());
+        Vector3D maxVec = new Vector3D(selection.getMaxX(), selection.getMaxY(), selection.getMaxZ());
+
+        Integer u1 = getMappedU(viewName, minVec);
+        Integer u2 = getMappedU(viewName, maxVec);
+        Integer v1 = getMappedV(viewName, minVec);
+        Integer v2 = getMappedV(viewName, maxVec);
+
+        if (u1 == null || u2 == null || v1 == null || v2 == null) return true;
+
+        int minU = Math.min(u1, u2);
+        int maxU = Math.max(u1, u2);
+        int minV = Math.min(v1, v2);
+        int maxV = Math.max(v1, v2);
+
+        return u >= minU && u <= maxU && v >= minV && v <= maxV;
+    }
+
     public void setVoxel(int x, int y, int z, int value) {
+        if (selection != null) {
+            if (x < selection.getMinX() || x > selection.getMaxX() ||
+                y < selection.getMinY() || y > selection.getMaxY() ||
+                z < selection.getMinZ() || z > selection.getMaxZ()) {
+                return;
+            }
+        }
         Integer old = voxels.put(new Vector3D(x, y, z), value);
         if (old == null || !old.equals(value)) {
             changeCount++;
@@ -133,6 +161,13 @@ public class VoxelModel implements Cloneable {
     }
 
     public void removeVoxel(int x, int y, int z) {
+        if (selection != null) {
+            if (x < selection.getMinX() || x > selection.getMaxX() ||
+                y < selection.getMinY() || y > selection.getMaxY() ||
+                z < selection.getMinZ() || z > selection.getMaxZ()) {
+                return;
+            }
+        }
         Integer removed = voxels.remove(new Vector3D(x, y, z));
         if (removed != null) {
             changeCount++;
@@ -148,6 +183,8 @@ public class VoxelModel implements Cloneable {
     }
 
     public void addProjection(String viewName, int u, int v, int colorValue) {
+        if (!isUvInsideSelection(viewName, u, v)) return;
+
         for (Projection p : projections) {
             if (p.viewName().equals(viewName) && p.u() == u && p.v() == v) {
                 // If it exists with a different color, we could update it,
@@ -242,6 +279,8 @@ public class VoxelModel implements Cloneable {
     }
 
     public void deleteProjection(String viewName, int u, int v) {
+        if (!isUvInsideSelection(viewName, u, v)) return;
+
         boolean removed = projections.removeIf(p -> p.viewName().equals(viewName) && p.u() == u && p.v() == v);
         if (removed) {
             changeCount++;

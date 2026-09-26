@@ -170,6 +170,9 @@ public class PreviewPanel extends JPanel {
         // Let's try ascending first.
         drawData.sort((a, b) -> Double.compare(a.depth, b.depth));
 
+        // Draw selection box if it exists
+        SelectionBox selection = model.getSelection();
+
         // Let's actually draw cubes instead of points to give volume
         // We will project the 8 corners of each voxel.
 
@@ -289,8 +292,74 @@ public class PreviewPanel extends JPanel {
             }
         }
 
+        // Draw Selection Box wireframe
+        if (selection != null) {
+            drawSelectionBox(g2d, selection, centerX, centerY, avgX, avgY, avgZ);
+        }
+
         // Draw 3D Axes
         draw3DAxis(g2d, centerX, centerY, avgX, avgY, avgZ);
+    }
+
+    private void drawSelectionBox(Graphics2D g2d, SelectionBox sel, int centerX, int centerY, double avgX, double avgY, double avgZ) {
+        // We want to draw a bounding box around the selected region.
+        // The selection bounds are min/max X, Y, Z. Since voxels are centered,
+        // a voxel at x spans [x-0.5, x+0.5].
+        double minX = sel.getMinX() - 0.5;
+        double minY = sel.getMinY() - 0.5;
+        double minZ = sel.getMinZ() - 0.5;
+        double maxX = sel.getMaxX() + 0.5;
+        double maxY = sel.getMaxY() + 0.5;
+        double maxZ = sel.getMaxZ() + 0.5;
+
+        Point3D[] corners = {
+            new Point3D(minX, minY, minZ),
+            new Point3D(maxX, minY, minZ),
+            new Point3D(maxX, maxY, minZ),
+            new Point3D(minX, maxY, minZ),
+            new Point3D(minX, minY, maxZ),
+            new Point3D(maxX, minY, maxZ),
+            new Point3D(maxX, maxY, maxZ),
+            new Point3D(minX, maxY, maxZ)
+        };
+
+        Point[] projCorners = new Point[8];
+        for (int i = 0; i < 8; i++) {
+            double cx = corners[i].x - avgX;
+            double cy = corners[i].y - avgY;
+            double cz = corners[i].z - avgZ;
+
+            if (model.getReferenceSystem() == ReferenceSystem.AMERICAN) {
+                double temp = cy;
+                cy = cz;
+                cz = temp;
+            }
+
+            double x1 = cx * Math.cos(rotateY) - cz * Math.sin(rotateY);
+            double z1 = cx * Math.sin(rotateY) + cz * Math.cos(rotateY);
+
+            double y2 = cy * Math.cos(rotateX) - z1 * Math.sin(rotateX);
+
+            projCorners[i] = new Point((int) (centerX + x1 * zoom), (int) (centerY - y2 * zoom));
+        }
+
+        g2d.setColor(Color.RED);
+        // g2d.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{5.0f}, 0.0f));
+        g2d.setStroke(new BasicStroke(2.0f));
+
+        // Edges connecting corners
+        int[][] edges = {
+            {0, 1}, {1, 2}, {2, 3}, {3, 0}, // Bottom
+            {4, 5}, {5, 6}, {6, 7}, {7, 4}, // Top
+            {0, 4}, {1, 5}, {2, 6}, {3, 7}  // Sides
+        };
+
+        for (int[] edge : edges) {
+            g2d.drawLine(projCorners[edge[0]].x, projCorners[edge[0]].y,
+                         projCorners[edge[1]].x, projCorners[edge[1]].y);
+        }
+
+        g2d.setStroke(new BasicStroke(1.0f));
     }
 
     private void draw3DAxis(Graphics2D g2d, int centerX, int centerY, double avgX, double avgY, double avgZ) {
