@@ -45,6 +45,7 @@ public class EditorFrame extends JFrame {
         this.toolManager.addTool(new FillTool()); // FillTool doesn't need ShiftKeyDecorator as it triggers on press
         this.toolManager.addTool(new ShiftKeyDecorator(new SquareTool()));
         this.toolManager.addTool(new ShiftKeyDecorator(new CircleTool()));
+        this.toolManager.addTool(new ShiftKeyDecorator(new PolyTool()));
         this.toolManager.addTool(new ShiftKeyDecorator(new SelectTool()));
         this.toolManager.addTool(new ShiftKeyDecorator(new FreeformTool()));
 
@@ -193,7 +194,7 @@ public class EditorFrame extends JFrame {
             toggleButton.addActionListener(e -> toolManager.setActiveTool(tool.getName()));
             toolGroup.add(toggleButton);
 
-            if (tool.getName().equals("Brush") || tool.getName().equals("Paint") || tool.getName().equals("Fill") || tool.getName().equals("Square") || tool.getName().equals("Circle")) {
+            if (tool.getName().equals("Brush") || tool.getName().equals("Paint") || tool.getName().equals("Fill") || tool.getName().equals("Square") || tool.getName().equals("Circle") || tool.getName().equals("Poly")) {
                 drawingToolsPanel.add(toggleButton);
             } else {
                 modifyToolsPanel.add(toggleButton);
