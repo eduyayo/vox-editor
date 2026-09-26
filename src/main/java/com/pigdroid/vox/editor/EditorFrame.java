@@ -34,6 +34,7 @@ public class EditorFrame extends JFrame {
     private VoxelModel voxelModel;
     private ToolManager toolManager;
     private UndoManager undoManager;
+    private JToggleButton linkViewsBtn;
 
     public EditorFrame() {
         this.voxelModel = new VoxelModel();
@@ -162,6 +163,10 @@ public class EditorFrame extends JFrame {
         });
         toolBar.add(referenceSelector);
 
+        toolBar.addSeparator();
+        linkViewsBtn = new JToggleButton("Link views");
+        toolBar.add(linkViewsBtn);
+
         add(toolBar, BorderLayout.NORTH);
     }
 
@@ -220,6 +225,36 @@ public class EditorFrame extends JFrame {
         PreviewPanel previewPanel = new PreviewPanel(voxelModel);
         previewPanel.setBorder(BorderFactory.createTitledBorder("Preview"));
         centerPanel.add(previewPanel);
+
+        GridPanel[] grids = {
+            frontPanel.getGridPanel(),
+            leftViewPanel.getGridPanel(),
+            topViewPanel.getGridPanel()
+        };
+
+        java.beans.PropertyChangeListener pcl = evt -> {
+            if (linkViewsBtn != null && linkViewsBtn.isSelected()) {
+                String prop = evt.getPropertyName();
+                Object newVal = evt.getNewValue();
+                for (GridPanel gp : grids) {
+                    if (gp != evt.getSource()) {
+                        if ("panX".equals(prop)) {
+                            gp.setPanX((Integer) newVal);
+                        } else if ("panY".equals(prop)) {
+                            gp.setPanY((Integer) newVal);
+                        } else if ("gridSize".equals(prop)) {
+                            gp.setGridSize((Integer) newVal);
+                        }
+                    }
+                }
+            }
+        };
+
+        for (GridPanel gp : grids) {
+            gp.addPropertyChangeListener("panX", pcl);
+            gp.addPropertyChangeListener("panY", pcl);
+            gp.addPropertyChangeListener("gridSize", pcl);
+        }
 
         mainPanel.add(centerPanel, BorderLayout.CENTER);
 

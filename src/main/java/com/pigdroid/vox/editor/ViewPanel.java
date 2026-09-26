@@ -89,4 +89,8 @@ public class ViewPanel extends JPanel {
     public String getSelectedView() {
         return (String) viewSelector.getSelectedItem();
     }
+
+    public GridPanel getGridPanel() {
+        return gridPanel;
+    }
 }
