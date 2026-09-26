@@ -70,7 +70,7 @@ public class VoxelModel implements Cloneable {
     }
 
     public Integer getMappedU(String viewName, Vector3D v) {
-        if (referenceSystem == ReferenceSystem.EUROPEAN) {
+        if (referenceSystem == ReferenceSystem.AMERICAN) {
             // XY is floor, Z is up
             switch (viewName) {
                 case "Front": return v.x();
@@ -96,7 +96,7 @@ public class VoxelModel implements Cloneable {
     }
 
     public Integer getMappedV(String viewName, Vector3D v) {
-        if (referenceSystem == ReferenceSystem.EUROPEAN) {
+        if (referenceSystem == ReferenceSystem.AMERICAN) {
             // XY is floor, Z is up
             switch (viewName) {
                 case "Front": return v.z();
@@ -175,7 +175,7 @@ public class VoxelModel implements Cloneable {
             Integer z = null;
 
             // Resolve from new projection
-            if (referenceSystem == ReferenceSystem.EUROPEAN) {
+            if (referenceSystem == ReferenceSystem.AMERICAN) {
                 switch (newProjection.viewName()) {
                     case "Front":
                     case "Back": x = newProjection.u(); z = newProjection.v(); break;
@@ -197,7 +197,7 @@ public class VoxelModel implements Cloneable {
 
             // Resolve from existing projection
             boolean conflict = false;
-            if (referenceSystem == ReferenceSystem.EUROPEAN) {
+            if (referenceSystem == ReferenceSystem.AMERICAN) {
                 switch (p.viewName()) {
                     case "Front":
                     case "Back":

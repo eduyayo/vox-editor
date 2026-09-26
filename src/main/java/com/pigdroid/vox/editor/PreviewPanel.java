@@ -139,7 +139,7 @@ public class PreviewPanel extends JPanel {
             double mx = v.x() - avgX;
             double my = v.y() - avgY;
             double mz = v.z() - avgZ;
-            if (model.getReferenceSystem() == ReferenceSystem.AMERICAN) {
+            if (model.getReferenceSystem() == ReferenceSystem.EUROPEAN) {
                 double temp = my;
                 my = mz;
                 mz = temp;
@@ -181,7 +181,7 @@ public class PreviewPanel extends JPanel {
             double mx = v.x() - avgX;
             double my = v.y() - avgY; // y goes down in screen coords usually, let's keep it simple
             double mz = v.z() - avgZ;
-            if (model.getReferenceSystem() == ReferenceSystem.AMERICAN) {
+            if (model.getReferenceSystem() == ReferenceSystem.EUROPEAN) {
                 double temp = my;
                 my = mz;
                 mz = temp;
@@ -300,7 +300,7 @@ public class PreviewPanel extends JPanel {
         double oxMut = 0 - avgX;
         double oyMut = 0 - avgY;
         double ozMut = 0 - avgZ;
-        if (model.getReferenceSystem() == ReferenceSystem.AMERICAN) {
+        if (model.getReferenceSystem() == ReferenceSystem.EUROPEAN) {
             double temp = oyMut;
             oyMut = ozMut;
             ozMut = temp;
@@ -314,7 +314,7 @@ public class PreviewPanel extends JPanel {
             double ex = endPt.x - avgX;
             double ey = endPt.y - avgY;
             double ez = endPt.z - avgZ;
-            if (model.getReferenceSystem() == ReferenceSystem.AMERICAN) {
+            if (model.getReferenceSystem() == ReferenceSystem.EUROPEAN) {
                 double temp = ey;
                 ey = ez;
                 ez = temp;
@@ -354,7 +354,7 @@ public class PreviewPanel extends JPanel {
             double lx = pt.x - avgX;
             double ly = pt.y - avgY;
             double lz = pt.z - avgZ;
-            if (model.getReferenceSystem() == ReferenceSystem.AMERICAN) {
+            if (model.getReferenceSystem() == ReferenceSystem.EUROPEAN) {
                 double temp = ly;
                 ly = lz;
                 lz = temp;

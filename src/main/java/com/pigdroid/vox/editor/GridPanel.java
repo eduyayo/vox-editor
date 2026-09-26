@@ -185,7 +185,7 @@ public class GridPanel extends JPanel {
             String vAxis = "";
 
             boolean isEuropean = (model.getReferenceSystem() == ReferenceSystem.EUROPEAN);
-            if (isEuropean) {
+            if (!isEuropean) { // AMERICAN
                 switch (viewName) {
                     case "Front": uAxis = "X"; vAxis = "Z"; break;
                     case "Back": uAxis = "X"; vAxis = "Z"; break;
