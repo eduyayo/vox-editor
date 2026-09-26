@@ -167,6 +167,7 @@ public class EditorFrame extends JFrame {
 
         toolBar.addSeparator();
         linkViewsBtn = new JToggleButton("Link views");
+        linkViewsBtn.setSelected(true);
         toolBar.add(linkViewsBtn);
 
         add(toolBar, BorderLayout.NORTH);

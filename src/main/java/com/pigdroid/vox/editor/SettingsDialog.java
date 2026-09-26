@@ -60,6 +60,24 @@ public class SettingsDialog extends JDialog {
         axisPanel.add(axisResetButton);
         mainPanel.add(axisPanel);
 
+        JPanel gridPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        gridPanel.add(new JLabel("Bigger Grid Spacing:"));
+
+        JSpinner gridSpinner = new JSpinner(new SpinnerNumberModel(Settings.getInstance().getBiggerGridSpacing(), 0, 100, 1));
+        gridSpinner.addChangeListener(e -> {
+            int value = (int) gridSpinner.getValue();
+            Settings.getInstance().setBiggerGridSpacing(value);
+        });
+        gridPanel.add(gridSpinner);
+
+        JButton gridResetButton = new JButton("Reset to Default");
+        gridResetButton.addActionListener(e -> {
+            gridSpinner.setValue(10);
+            Settings.getInstance().setBiggerGridSpacing(10);
+        });
+        gridPanel.add(gridResetButton);
+        mainPanel.add(gridPanel);
+
         add(mainPanel, BorderLayout.CENTER);
 
         JButton closeButton = new JButton("Close");
