@@ -56,7 +56,7 @@ public class BrushTool implements Tool {
         int originX = gridPanel.getWidth() / 2 + gridPanel.getPanX();
         int originY = gridPanel.getHeight() / 2 + gridPanel.getPanY();
         int u = Math.floorDiv(e.getX() - originX, gridPanel.getGridSize());
-        int v = Math.floorDiv(e.getY() - originY, gridPanel.getGridSize());
+        int v = Math.floorDiv(originY - e.getY(), gridPanel.getGridSize());
 
         if (SwingUtilities.isLeftMouseButton(e)) {
             model.addProjection(viewName, u, v, currentColor.getRGB());

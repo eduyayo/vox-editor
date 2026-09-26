@@ -63,10 +63,10 @@ public class ShiftKeyDecorator implements Tool {
         int originY = gridPanel.getHeight() / 2 + gridPanel.getPanY();
 
         int startGridX = Math.floorDiv(startX - originX, gridSize);
-        int startGridY = Math.floorDiv(startY - originY, gridSize);
+        int startGridY = Math.floorDiv(originY - startY, gridSize);
 
         int currGridX = Math.floorDiv(e.getX() - originX, gridSize);
-        int currGridY = Math.floorDiv(e.getY() - originY, gridSize);
+        int currGridY = Math.floorDiv(originY - e.getY(), gridSize);
 
         int dGridX = currGridX - startGridX;
         int dGridY = currGridY - startGridY;
@@ -90,7 +90,7 @@ public class ShiftKeyDecorator implements Tool {
             }
 
             if (lockedDirection == Direction.HORIZONTAL) {
-                newY = originY + startGridY * gridSize + gridSize / 2;
+                newY = originY - startGridY * gridSize - gridSize / 2;
             } else if (lockedDirection == Direction.VERTICAL) {
                 newX = originX + startGridX * gridSize + gridSize / 2;
             } else if (lockedDirection == Direction.DIAGONAL) {
@@ -102,7 +102,7 @@ public class ShiftKeyDecorator implements Tool {
                 int targetGridY = startGridY + maxGrid * signY;
 
                 newX = originX + targetGridX * gridSize + gridSize / 2;
-                newY = originY + targetGridY * gridSize + gridSize / 2;
+                newY = originY - targetGridY * gridSize - gridSize / 2;
             } else {
                 newX = startX;
                 newY = startY;
@@ -116,7 +116,7 @@ public class ShiftKeyDecorator implements Tool {
             int targetGridY = startGridY + maxGrid * signY;
 
             newX = originX + targetGridX * gridSize + gridSize / 2;
-            newY = originY + targetGridY * gridSize + gridSize / 2;
+            newY = originY - targetGridY * gridSize - gridSize / 2;
         }
 
         return new MouseEvent(

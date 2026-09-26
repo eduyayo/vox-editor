@@ -110,7 +110,7 @@ public class GridPanel extends JPanel {
                 g.setColor(Color.CYAN);
                 for (Projection p : model.getProjections()) {
                     if (viewName.equals(p.viewName())) {
-                        g.fillRect(originX + p.u() * gridSize, originY + p.v() * gridSize, gridSize, gridSize);
+                        g.fillRect(gridToScreenX(p.u()), gridToScreenY(p.v()), gridSize, gridSize);
                     }
                 }
 
@@ -121,7 +121,7 @@ public class GridPanel extends JPanel {
                     Integer mappedV = model.getMappedV(viewName, v);
 
                     if (mappedU != null && mappedV != null) {
-                        g.fillRect(originX + mappedU * gridSize, originY + mappedV * gridSize, gridSize, gridSize);
+                        g.fillRect(gridToScreenX(mappedU), gridToScreenY(mappedV), gridSize, gridSize);
                     }
                 }
             }
@@ -182,7 +182,7 @@ public class GridPanel extends JPanel {
             }
             for (int y = startY; y < height; y += gridSize) {
                 if (y == originY) continue;
-                int coord = (y - originY) / gridSize;
+                int coord = Math.floorDiv(originY - y, gridSize);
                 if (coord % 5 == 0) {
                     String text = String.valueOf(coord);
                     g.drawString(text, originX + 2, y - 2);
@@ -211,7 +211,7 @@ public class GridPanel extends JPanel {
                     int drawVMax = Math.max(vMin, vMax);
 
                     int px = gridToScreenX(drawUMin);
-                    int py = gridToScreenY(drawVMin);
+                    int py = gridToScreenY(drawVMax);
                     int selWidth = (drawUMax - drawUMin + 1) * gridSize;
                     int selHeight = (drawVMax - drawVMin + 1) * gridSize;
 
@@ -279,6 +279,6 @@ public class GridPanel extends JPanel {
     public int gridToScreenY(int gridY) {
         int height = getHeight();
         int originY = height / 2 + panY;
-        return originY + gridY * gridSize;
+        return originY - gridY * gridSize - gridSize;
     }
 }

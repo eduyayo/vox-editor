@@ -61,7 +61,7 @@ public class CircleTool implements Tool {
         int originX = gridPanel.getWidth() / 2 + gridPanel.getPanX();
         int originY = gridPanel.getHeight() / 2 + gridPanel.getPanY();
         startGridX = Math.floorDiv(e.getX() - originX, gridPanel.getGridSize());
-        startGridY = Math.floorDiv(e.getY() - originY, gridPanel.getGridSize());
+        startGridY = Math.floorDiv(originY - e.getY(), gridPanel.getGridSize());
         currentGridX = startGridX;
         currentGridY = startGridY;
 
@@ -76,7 +76,7 @@ public class CircleTool implements Tool {
         int originX = gridPanel.getWidth() / 2 + gridPanel.getPanX();
         int originY = gridPanel.getHeight() / 2 + gridPanel.getPanY();
         currentGridX = Math.floorDiv(e.getX() - originX, gridPanel.getGridSize());
-        currentGridY = Math.floorDiv(e.getY() - originY, gridPanel.getGridSize());
+        currentGridY = Math.floorDiv(originY - e.getY(), gridPanel.getGridSize());
 
         gridPanel.repaint();
     }
@@ -146,8 +146,8 @@ public class CircleTool implements Tool {
             g.setColor(new Color(currentColor.getRed(), currentColor.getGreen(), currentColor.getBlue(), 128)); // Semi-transparent current color
         }
 
-        int px = originX + minX * gridSize;
-        int py = originY + minY * gridSize;
+        int px = currentGridPanel.gridToScreenX(minX);
+        int py = currentGridPanel.gridToScreenY(maxY);
         int width = (maxX - minX + 1) * gridSize;
         int height = (maxY - minY + 1) * gridSize;
 

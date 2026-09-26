@@ -61,7 +61,7 @@ public class SelectTool implements Tool {
         int gridSize = gridPanel.getGridSize();
 
         int gridU = Math.floorDiv(e.getX() - originX, gridSize);
-        int gridV = Math.floorDiv(e.getY() - originY, gridSize);
+        int gridV = Math.floorDiv(originY - e.getY(), gridSize);
 
         currentDrag = DragHandle.NEW_SELECTION;
 
@@ -127,7 +127,7 @@ public class SelectTool implements Tool {
         int gridSize = gridPanel.getGridSize();
 
         currentGridU = Math.floorDiv(e.getX() - originX, gridSize);
-        currentGridV = Math.floorDiv(e.getY() - originY, gridSize);
+        currentGridV = Math.floorDiv(originY - e.getY(), gridSize);
 
         updateSelection();
         gridPanel.repaint();
