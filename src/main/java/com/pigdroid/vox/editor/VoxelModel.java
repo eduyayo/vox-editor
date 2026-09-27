@@ -321,13 +321,18 @@ public class VoxelModel implements Cloneable {
                         }
                     }
                     int cx = x; int cy = y; int cz = z;
+                    boolean found = false;
                     for (int i = 0; i < 100; i++) {
                         cx += dx; cy += dy; cz += dz;
                         Vector3D movedCandidate = new Vector3D(cx, cy, cz);
                         if (!isGhosted(movedCandidate)) {
                             setVoxel(cx, cy, cz, colorValue);
+                            found = true;
                             break;
                         }
+                    }
+                    if (!found) {
+                        setVoxel(x, y, z, colorValue);
                     }
                 }
             }
@@ -351,6 +356,18 @@ public class VoxelModel implements Cloneable {
                 toRemove.add(voxel);
             }
         }
+
+        // If we found no non-ghosted voxels, fallback to deleting ghosted voxels
+        if (toRemove.isEmpty()) {
+            for (Vector3D voxel : voxels.keySet()) {
+                Integer mappedU = getMappedU(viewName, voxel);
+                Integer mappedV = getMappedV(viewName, voxel);
+                if (mappedU != null && mappedU == u && mappedV != null && mappedV == v) {
+                    toRemove.add(voxel);
+                }
+            }
+        }
+
         for (Vector3D voxel : toRemove) {
             voxels.remove(voxel);
         }

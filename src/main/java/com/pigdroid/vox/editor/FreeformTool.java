@@ -97,6 +97,20 @@ public class FreeformTool implements Tool {
                 if (v.z() > gMaxZ) gMaxZ = v.z();
                 hasVoxels = true;
             }
+
+            // Fallback if all voxels were ghosted
+            if (!hasVoxels) {
+                for (Vector3D v : model.getVoxels().keySet()) {
+                    if (v.x() < gMinX) gMinX = v.x();
+                    if (v.x() > gMaxX) gMaxX = v.x();
+                    if (v.y() < gMinY) gMinY = v.y();
+                    if (v.y() > gMaxY) gMaxY = v.y();
+                    if (v.z() < gMinZ) gMinZ = v.z();
+                    if (v.z() > gMaxZ) gMaxZ = v.z();
+                    hasVoxels = true;
+                }
+            }
+
             if (hasVoxels) {
                 sel = new SelectionBox(gMinX, gMinY, gMinZ, gMaxX, gMaxY, gMaxZ);
                 model.setSelection(sel);

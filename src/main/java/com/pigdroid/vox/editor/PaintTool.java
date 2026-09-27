@@ -78,6 +78,20 @@ public class PaintTool implements Tool {
                 }
             }
 
+            // Fallback: If no non-ghosted voxels were found, search again allowing ghosted voxels
+            if (toUpdate.isEmpty()) {
+                for (Map.Entry<Vector3D, Integer> entry : model.getVoxels().entrySet()) {
+                    Vector3D vec = entry.getKey();
+                    Integer mappedU = model.getMappedU(viewName, vec);
+                    Integer mappedV = model.getMappedV(viewName, vec);
+                    if (mappedU != null && mappedV != null && mappedU == u && mappedV == v) {
+                        if (!entry.getValue().equals(currentColor.getRGB())) {
+                            toUpdate.add(vec);
+                        }
+                    }
+                }
+            }
+
             for (Vector3D vec : toUpdate) {
                 model.setVoxel(vec.x(), vec.y(), vec.z(), currentColor.getRGB());
                 changed = true;
