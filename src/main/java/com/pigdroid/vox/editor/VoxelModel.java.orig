@@ -322,26 +322,16 @@ public class VoxelModel implements Cloneable {
                     }
                     int cx = x; int cy = y; int cz = z;
                     boolean found = false;
-                    boolean columnHasNonGhosted = false;
                     for (int i = 0; i < 100; i++) {
-                        Vector3D movedCandidate = new Vector3D(x + dx * i, y + dy * i, z + dz * i);
+                        cx += dx; cy += dy; cz += dz;
+                        Vector3D movedCandidate = new Vector3D(cx, cy, cz);
                         if (!isGhosted(movedCandidate)) {
-                            columnHasNonGhosted = true;
+                            setVoxel(cx, cy, cz, colorValue);
+                            found = true;
                             break;
                         }
                     }
-                    if (columnHasNonGhosted) {
-                        for (int i = 0; i < 100; i++) {
-                            cx += dx; cy += dy; cz += dz;
-                            Vector3D movedCandidate = new Vector3D(cx, cy, cz);
-                            if (!isGhosted(movedCandidate)) {
-                                setVoxel(cx, cy, cz, colorValue);
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!columnHasNonGhosted || !found) {
+                    if (!found) {
                         setVoxel(x, y, z, colorValue);
                     }
                 }
