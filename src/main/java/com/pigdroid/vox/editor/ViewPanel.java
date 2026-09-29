@@ -3,6 +3,7 @@ package com.pigdroid.vox.editor;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
+import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -26,8 +27,20 @@ public class ViewPanel extends JPanel {
         viewSelector = new JComboBox<>(new String[]{"Front", "Back", "Top", "Bottom", "Left", "Right"});
         viewSelector.setSelectedItem(initialView);
 
+        JToggleButton vSliceBtn = new JToggleButton("V-Slice");
+        JToggleButton hSliceBtn = new JToggleButton("H-Slice");
+
         viewSelector.addActionListener(e -> {
             updateBorderTitle();
+            String view = (String) viewSelector.getSelectedItem();
+            VoxelModel.SliceState state = model.getSliceState(view);
+            if (state != null) {
+                vSliceBtn.setSelected(state.vEnabled);
+                hSliceBtn.setSelected(state.hEnabled);
+            } else {
+                vSliceBtn.setSelected(false);
+                hSliceBtn.setSelected(false);
+            }
             gridPanel.repaint();
         });
 
@@ -39,6 +52,8 @@ public class ViewPanel extends JPanel {
 
             @Override
             public void mousePressed(MouseEvent e) {
+                if (gridPanel.isHoveringSliceHandle(e)) return;
+
                 snapshot = model.clone();
                 initialChangeCount = model.getChangeCount();
 
@@ -50,6 +65,8 @@ public class ViewPanel extends JPanel {
 
             @Override
             public void mouseDragged(MouseEvent e) {
+                if (gridPanel.isDraggingSlice()) return;
+
                 Tool tool = toolManager.getActiveTool();
                 if (tool != null) {
                     tool.onMouseDragged(e, (String) viewSelector.getSelectedItem(), model, gridPanel);
@@ -58,14 +75,17 @@ public class ViewPanel extends JPanel {
 
             @Override
             public void mouseReleased(MouseEvent e) {
+                if (gridPanel.isDraggingSlice()) return;
+
                 Tool tool = toolManager.getActiveTool();
                 if (tool != null) {
                     tool.onMouseReleased(e);
                 }
 
-                if (model.getChangeCount() != initialChangeCount && undoManager != null) {
+                if (snapshot != null && model.getChangeCount() != initialChangeCount && undoManager != null) {
                     undoManager.recordState(snapshot);
                 }
+                snapshot = null;
             }
         };
 
@@ -74,6 +94,31 @@ public class ViewPanel extends JPanel {
 
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topPanel.add(viewSelector);
+
+        vSliceBtn.addActionListener(e -> {
+            String view = (String) viewSelector.getSelectedItem();
+            VoxelModel.SliceState state = model.getSliceState(view);
+            if (state != null) {
+                state.vEnabled = vSliceBtn.isSelected();
+                model.setSliceState(view, state);
+                gridPanel.repaint();
+                SwingUtilities.getWindowAncestor(this).repaint();
+            }
+        });
+
+        hSliceBtn.addActionListener(e -> {
+            String view = (String) viewSelector.getSelectedItem();
+            VoxelModel.SliceState state = model.getSliceState(view);
+            if (state != null) {
+                state.hEnabled = hSliceBtn.isSelected();
+                model.setSliceState(view, state);
+                gridPanel.repaint();
+                SwingUtilities.getWindowAncestor(this).repaint();
+            }
+        });
+
+        topPanel.add(vSliceBtn);
+        topPanel.add(hSliceBtn);
 
         add(topPanel, BorderLayout.NORTH);
         add(gridPanel, BorderLayout.CENTER);

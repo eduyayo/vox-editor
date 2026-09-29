@@ -130,7 +130,7 @@ public class VoxelModel implements Cloneable {
     }
 
     public Integer getMappedU(String viewName, Vector3D v) {
-        if (referenceSystem == ReferenceSystem.AMERICAN) {
+        if (referenceSystem == ReferenceSystem.EUROPEAN) {
             // XY is floor, Z is up
             switch (viewName) {
                 case "Front": return v.x();
@@ -156,7 +156,7 @@ public class VoxelModel implements Cloneable {
     }
 
     public Integer getMappedV(String viewName, Vector3D v) {
-        if (referenceSystem == ReferenceSystem.AMERICAN) {
+        if (referenceSystem == ReferenceSystem.EUROPEAN) {
             // XY is floor, Z is up
             switch (viewName) {
                 case "Front": return v.z();
@@ -181,35 +181,7 @@ public class VoxelModel implements Cloneable {
         }
     }
 
-    public boolean isUvInsideSelection(String viewName, int u, int v) {
-        if (selection == null) return true;
-
-        Vector3D minVec = new Vector3D(selection.getMinX(), selection.getMinY(), selection.getMinZ());
-        Vector3D maxVec = new Vector3D(selection.getMaxX(), selection.getMaxY(), selection.getMaxZ());
-
-        Integer u1 = getMappedU(viewName, minVec);
-        Integer u2 = getMappedU(viewName, maxVec);
-        Integer v1 = getMappedV(viewName, minVec);
-        Integer v2 = getMappedV(viewName, maxVec);
-
-        if (u1 == null || u2 == null || v1 == null || v2 == null) return true;
-
-        int minU = Math.min(u1, u2);
-        int maxU = Math.max(u1, u2);
-        int minV = Math.min(v1, v2);
-        int maxV = Math.max(v1, v2);
-
-        return u >= minU && u <= maxU && v >= minV && v <= maxV;
-    }
-
     public void setVoxel(int x, int y, int z, int value) {
-        if (selection != null) {
-            if (x < selection.getMinX() || x > selection.getMaxX() ||
-                y < selection.getMinY() || y > selection.getMaxY() ||
-                z < selection.getMinZ() || z > selection.getMaxZ()) {
-                return;
-            }
-        }
         Integer old = voxels.put(new Vector3D(x, y, z), value);
         if (old == null || !old.equals(value)) {
             changeCount++;
@@ -221,13 +193,6 @@ public class VoxelModel implements Cloneable {
     }
 
     public void removeVoxel(int x, int y, int z) {
-        if (selection != null) {
-            if (x < selection.getMinX() || x > selection.getMaxX() ||
-                y < selection.getMinY() || y > selection.getMaxY() ||
-                z < selection.getMinZ() || z > selection.getMaxZ()) {
-                return;
-            }
-        }
         Integer removed = voxels.remove(new Vector3D(x, y, z));
         if (removed != null) {
             changeCount++;
@@ -243,8 +208,6 @@ public class VoxelModel implements Cloneable {
     }
 
     public void addProjection(String viewName, int u, int v, int colorValue) {
-        if (!isUvInsideSelection(viewName, u, v)) return;
-
         for (Projection p : projections) {
             if (p.viewName().equals(viewName) && p.u() == u && p.v() == v) {
                 // If it exists with a different color, we could update it,
@@ -272,7 +235,7 @@ public class VoxelModel implements Cloneable {
             Integer z = null;
 
             // Resolve from new projection
-            if (referenceSystem == ReferenceSystem.AMERICAN) {
+            if (referenceSystem == ReferenceSystem.EUROPEAN) {
                 switch (newProjection.viewName()) {
                     case "Front":
                     case "Back": x = newProjection.u(); z = newProjection.v(); break;
@@ -294,7 +257,7 @@ public class VoxelModel implements Cloneable {
 
             // Resolve from existing projection
             boolean conflict = false;
-            if (referenceSystem == ReferenceSystem.AMERICAN) {
+            if (referenceSystem == ReferenceSystem.EUROPEAN) {
                 switch (p.viewName()) {
                     case "Front":
                     case "Back":
@@ -359,26 +322,16 @@ public class VoxelModel implements Cloneable {
                     }
                     int cx = x; int cy = y; int cz = z;
                     boolean found = false;
-                    boolean columnHasNonGhosted = false;
                     for (int i = 0; i < 100; i++) {
-                        Vector3D movedCandidate = new Vector3D(x + dx * i, y + dy * i, z + dz * i);
+                        cx += dx; cy += dy; cz += dz;
+                        Vector3D movedCandidate = new Vector3D(cx, cy, cz);
                         if (!isGhosted(movedCandidate)) {
-                            columnHasNonGhosted = true;
+                            setVoxel(cx, cy, cz, colorValue);
+                            found = true;
                             break;
                         }
                     }
-                    if (columnHasNonGhosted) {
-                        for (int i = 0; i < 100; i++) {
-                            cx += dx; cy += dy; cz += dz;
-                            Vector3D movedCandidate = new Vector3D(cx, cy, cz);
-                            if (!isGhosted(movedCandidate)) {
-                                setVoxel(cx, cy, cz, colorValue);
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!columnHasNonGhosted || !found) {
+                    if (!found) {
                         setVoxel(x, y, z, colorValue);
                     }
                 }

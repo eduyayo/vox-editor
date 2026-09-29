@@ -176,11 +176,24 @@ public class SelectTool implements Tool {
             int gMaxDepth = Integer.MIN_VALUE;
 
             for (Vector3D v : currentModel.getVoxels().keySet()) {
+                if (currentModel.isGhosted(v)) continue;
                 Integer depth = getUnmappedCoordinate(currentViewName, v);
                 if (depth != null) {
                     hasVoxels = true;
                     if (depth < gMinDepth) gMinDepth = depth;
                     if (depth > gMaxDepth) gMaxDepth = depth;
+                }
+            }
+
+            // Fallback if all voxels were ghosted
+            if (!hasVoxels) {
+                for (Vector3D v : currentModel.getVoxels().keySet()) {
+                    Integer depth = getUnmappedCoordinate(currentViewName, v);
+                    if (depth != null) {
+                        hasVoxels = true;
+                        if (depth < gMinDepth) gMinDepth = depth;
+                        if (depth > gMaxDepth) gMaxDepth = depth;
+                    }
                 }
             }
 

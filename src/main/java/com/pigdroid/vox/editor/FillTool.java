@@ -75,11 +75,28 @@ public class FillTool implements Tool {
         List<Vector3D> startVoxels = new ArrayList<>();
         for (Map.Entry<Vector3D, Integer> entry : model.getVoxels().entrySet()) {
             Vector3D vec = entry.getKey();
+            if (model.isGhosted(vec)) continue;
             Integer mappedU = model.getMappedU(viewName, vec);
             Integer mappedV = model.getMappedV(viewName, vec);
             if (mappedU != null && mappedV != null && mappedU == u && mappedV == v) {
                 if (entry.getValue() != replacementColor) {
                     startVoxels.add(vec);
+                }
+            }
+        }
+
+        // Fallback: If no non-ghosted voxels were found, search again allowing ghosted voxels
+        boolean ignoreGhosting = false;
+        if (startVoxels.isEmpty()) {
+            ignoreGhosting = true;
+            for (Map.Entry<Vector3D, Integer> entry : model.getVoxels().entrySet()) {
+                Vector3D vec = entry.getKey();
+                Integer mappedU = model.getMappedU(viewName, vec);
+                Integer mappedV = model.getMappedV(viewName, vec);
+                if (mappedU != null && mappedV != null && mappedU == u && mappedV == v) {
+                    if (entry.getValue() != replacementColor) {
+                        startVoxels.add(vec);
+                    }
                 }
             }
         }
@@ -127,6 +144,10 @@ public class FillTool implements Tool {
                         }
 
                         if (inBounds) {
+                            if (!ignoreGhosting && model.isGhosted(neighbor)) {
+                                // Skip ghosted voxels if we are generally honoring ghosting
+                                continue;
+                            }
                             Integer neighborColor = model.getVoxel(neighbor.x(), neighbor.y(), neighbor.z());
                             if (neighborColor != null && neighborColor == targetColor) {
                                 visited.add(neighbor);

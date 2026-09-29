@@ -194,7 +194,9 @@ public class PreviewPanel extends JPanel {
             double z1_center = mx * Math.sin(rotateY) + mz * Math.cos(rotateY);
             double depth_center = my * Math.sin(rotateX) + z1_center * Math.cos(rotateX);
 
-                cubes.add(new CubeDrawData(mx, my, mz, depth_center, entry.getValue()));
+                boolean ghosted = model.isGhosted(v);
+
+                cubes.add(new CubeDrawData(mx, my, mz, depth_center, entry.getValue(), ghosted));
             }
         }
 
@@ -263,6 +265,11 @@ public class PreviewPanel extends JPanel {
                 1.1   // Top
             };
 
+            Composite originalComposite = g2d.getComposite();
+            if (cube.ghosted) {
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.2f));
+            }
+
             // Calculate normals and draw if facing camera
             for (int i = 0; i < 6; i++) {
                 int[] f = faces[i];
@@ -289,6 +296,9 @@ public class PreviewPanel extends JPanel {
                     g2d.setColor(Color.BLACK);
                     g2d.drawPolygon(p);
                 }
+            }
+            if (cube.ghosted) {
+                g2d.setComposite(originalComposite);
             }
         }
 
@@ -465,12 +475,15 @@ public class PreviewPanel extends JPanel {
         double x, y, z, depth;
         int value;
 
-        public CubeDrawData(double x, double y, double z, double depth, int value) {
+        boolean ghosted;
+
+        public CubeDrawData(double x, double y, double z, double depth, int value, boolean ghosted) {
             this.x = x;
             this.y = y;
             this.z = z;
             this.depth = depth;
             this.value = value;
+            this.ghosted = ghosted;
         }
     }
 
