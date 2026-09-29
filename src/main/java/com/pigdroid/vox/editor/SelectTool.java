@@ -79,9 +79,9 @@ public class SelectTool implements Tool {
                 int maxV = Math.max(vMin, vMax);
 
                 int pxMin = gridPanel.gridToScreenX(minU);
-                int pyMin = gridPanel.gridToScreenY(minV);
+                int pyMin = gridPanel.gridToScreenY(maxV);
                 int pxMax = gridPanel.gridToScreenX(maxU) + gridSize;
-                int pyMax = gridPanel.gridToScreenY(maxV) + gridSize;
+                int pyMax = gridPanel.gridToScreenY(minV) + gridSize;
 
                 int handleSize = 6;
                 int mx = e.getX();
@@ -89,16 +89,16 @@ public class SelectTool implements Tool {
 
                 if (Math.abs(mx - pxMin) <= handleSize && Math.abs(my - pyMin) <= handleSize) {
                     currentDrag = DragHandle.TOP_LEFT;
-                    fixedGridU = maxU; fixedGridV = maxV;
+                    fixedGridU = maxU; fixedGridV = minV;
                 } else if (Math.abs(mx - pxMax) <= handleSize && Math.abs(my - pyMin) <= handleSize) {
                     currentDrag = DragHandle.TOP_RIGHT;
-                    fixedGridU = minU; fixedGridV = maxV;
+                    fixedGridU = minU; fixedGridV = minV;
                 } else if (Math.abs(mx - pxMin) <= handleSize && Math.abs(my - pyMax) <= handleSize) {
                     currentDrag = DragHandle.BOTTOM_LEFT;
-                    fixedGridU = maxU; fixedGridV = minV;
+                    fixedGridU = maxU; fixedGridV = maxV;
                 } else if (Math.abs(mx - pxMax) <= handleSize && Math.abs(my - pyMax) <= handleSize) {
                     currentDrag = DragHandle.BOTTOM_RIGHT;
-                    fixedGridU = minU; fixedGridV = minV;
+                    fixedGridU = minU; fixedGridV = maxV;
                 }
             }
         }
@@ -221,7 +221,7 @@ public class SelectTool implements Tool {
 
     private Integer getUnmappedCoordinate(String viewName, Vector3D v) {
         ReferenceSystem ref = currentModel.getReferenceSystem();
-        if (ref == ReferenceSystem.EUROPEAN) {
+        if (ref == ReferenceSystem.AMERICAN) {
             switch (viewName) {
                 case "Front": case "Back": return v.y();
                 case "Top": case "Bottom": return v.z();
@@ -239,7 +239,7 @@ public class SelectTool implements Tool {
 
     private Vector3D constructVector(String viewName, int u, int v, int depth) {
         ReferenceSystem ref = currentModel.getReferenceSystem();
-        if (ref == ReferenceSystem.EUROPEAN) {
+        if (ref == ReferenceSystem.AMERICAN) {
             switch (viewName) {
                 case "Front": case "Back": return new Vector3D(u, depth, v);
                 case "Top": case "Bottom": return new Vector3D(u, v, depth);
