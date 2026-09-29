@@ -22,6 +22,8 @@ import java.awt.event.InputEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.prefs.Preferences;
 
 import javax.swing.JToggleButton;
 import javax.swing.ButtonGroup;
@@ -35,11 +37,17 @@ public class EditorFrame extends JFrame {
     private ToolManager toolManager;
     private UndoManager undoManager;
     private JToggleButton linkViewsBtn;
+    private File currentFile;
+    private List<File> recentFiles = new ArrayList<>();
+    private JMenu recentFilesMenu;
+    private static final int MAX_RECENT_FILES = 10;
+    private Preferences prefs = Preferences.userNodeForPackage(EditorFrame.class);
 
     public EditorFrame() {
         this.voxelModel = new VoxelModel();
         this.toolManager = new ToolManager();
         this.undoManager = new UndoManager();
+        loadRecentFiles();
         this.toolManager.addTool(new ShiftKeyDecorator(new BrushTool()));
         this.toolManager.addTool(new ShiftKeyDecorator(new PaintTool()));
         this.toolManager.addTool(new FillTool()); // FillTool doesn't need ShiftKeyDecorator as it triggers on press
@@ -75,12 +83,21 @@ public class EditorFrame extends JFrame {
         saveItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
         saveItem.addActionListener(e -> saveFile());
 
+        JMenuItem saveAsItem = new JMenuItem("Save As...");
+        saveAsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK));
+        saveAsItem.addActionListener(e -> saveAsFile());
+
         JMenuItem exitItem = new JMenuItem("Exit");
         exitItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK));
         exitItem.addActionListener((ActionEvent e) -> System.exit(0));
 
+        recentFilesMenu = new JMenu("Recent Files");
+        updateRecentFilesMenu();
+
         fileMenu.add(openItem);
+        fileMenu.add(recentFilesMenu);
         fileMenu.add(saveItem);
+        fileMenu.add(saveAsItem);
         fileMenu.addSeparator();
         fileMenu.add(exitItem);
 
@@ -296,6 +313,8 @@ public class EditorFrame extends JFrame {
                 // Keep the current reference system, and clear projections
                 new ArrayList<>(this.voxelModel.getProjections()).forEach(p -> this.voxelModel.deleteProjection(p.viewName(), p.u(), p.v()));
 
+                this.currentFile = file;
+                addRecentFile(file);
                 repaint();
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(this, "Failed to open file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -303,7 +322,86 @@ public class EditorFrame extends JFrame {
         }
     }
 
+    private void openRecentFile(File file) {
+        if (!file.exists()) {
+            JOptionPane.showMessageDialog(this, "File does not exist: " + file.getAbsolutePath(), "Error", JOptionPane.ERROR_MESSAGE);
+            recentFiles.remove(file);
+            updateRecentFilesMenu();
+            return;
+        }
+        try {
+            VoxelModel newModel = VoxFile.read(file);
+            new ArrayList<>(this.voxelModel.getVoxels().keySet()).forEach(v -> this.voxelModel.removeVoxel(v.x(), v.y(), v.z()));
+            newModel.getVoxels().forEach((v, c) -> this.voxelModel.setVoxel(v.x(), v.y(), v.z(), c));
+            new ArrayList<>(this.voxelModel.getProjections()).forEach(p -> this.voxelModel.deleteProjection(p.viewName(), p.u(), p.v()));
+
+            this.currentFile = file;
+            addRecentFile(file);
+            repaint();
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Failed to open file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void addRecentFile(File file) {
+        recentFiles.remove(file);
+        recentFiles.add(0, file);
+        if (recentFiles.size() > MAX_RECENT_FILES) {
+            recentFiles.remove(recentFiles.size() - 1);
+        }
+        saveRecentFilesToPrefs();
+        updateRecentFilesMenu();
+    }
+
+    private void loadRecentFiles() {
+        recentFiles.clear();
+        int count = prefs.getInt("recentFilesCount", 0);
+        for (int i = 0; i < count; i++) {
+            String path = prefs.get("recentFile" + i, null);
+            if (path != null) {
+                File file = new File(path);
+                if (file.exists()) {
+                    recentFiles.add(file);
+                }
+            }
+        }
+    }
+
+    private void saveRecentFilesToPrefs() {
+        prefs.putInt("recentFilesCount", recentFiles.size());
+        for (int i = 0; i < recentFiles.size(); i++) {
+            prefs.put("recentFile" + i, recentFiles.get(i).getAbsolutePath());
+        }
+    }
+
+    private void updateRecentFilesMenu() {
+        recentFilesMenu.removeAll();
+        if (recentFiles.isEmpty()) {
+            JMenuItem emptyItem = new JMenuItem("No Recent Files");
+            emptyItem.setEnabled(false);
+            recentFilesMenu.add(emptyItem);
+        } else {
+            for (File file : recentFiles) {
+                JMenuItem item = new JMenuItem(file.getAbsolutePath());
+                item.addActionListener(e -> openRecentFile(file));
+                recentFilesMenu.add(item);
+            }
+        }
+    }
+
     private void saveFile() {
+        if (currentFile != null) {
+            try {
+                VoxFile.write(this.voxelModel, currentFile);
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(this, "Failed to save file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            saveAsFile();
+        }
+    }
+
+    private void saveAsFile() {
         JFileChooser chooser = new JFileChooser();
         int ret = chooser.showSaveDialog(this);
         if (ret == JFileChooser.APPROVE_OPTION) {
@@ -313,6 +411,8 @@ public class EditorFrame extends JFrame {
             }
             try {
                 VoxFile.write(this.voxelModel, file);
+                this.currentFile = file;
+                addRecentFile(file);
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(this, "Failed to save file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
