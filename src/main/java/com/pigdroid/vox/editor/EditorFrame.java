@@ -83,7 +83,7 @@ public class EditorFrame extends JFrame {
         saveItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
         saveItem.addActionListener(e -> saveFile());
 
-        JMenuItem saveAsItem = new JMenuItem("Save As...");
+        JMenuItem saveAsItem = new JMenuItem("Save as");
         saveAsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK));
         saveAsItem.addActionListener(e -> saveAsFile());
 
@@ -97,7 +97,10 @@ public class EditorFrame extends JFrame {
         fileMenu.add(openItem);
         fileMenu.add(recentFilesMenu);
         fileMenu.add(saveItem);
+
+        // Add the "Save as" option in the File menu
         fileMenu.add(saveAsItem);
+
         fileMenu.addSeparator();
         fileMenu.add(exitItem);
 
