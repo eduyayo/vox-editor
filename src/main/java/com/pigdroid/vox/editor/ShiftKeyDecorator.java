@@ -8,6 +8,8 @@ public class ShiftKeyDecorator implements Tool {
     private Integer startX;
     private Integer startY;
     private GridPanel lastGridPanel;
+    private String lastViewName;
+    private VoxelModel lastModel;
 
     private enum Direction { NONE, HORIZONTAL, VERTICAL, DIAGONAL }
     private Direction lockedDirection = Direction.NONE;
@@ -31,6 +33,8 @@ public class ShiftKeyDecorator implements Tool {
         startX = e.getX();
         startY = e.getY();
         lastGridPanel = gridPanel;
+        lastViewName = viewName;
+        lastModel = model;
         lockedDirection = Direction.NONE;
         wrapped.onMousePressed(e, viewName, model, gridPanel);
     }
@@ -39,7 +43,7 @@ public class ShiftKeyDecorator implements Tool {
     public void onMouseDragged(MouseEvent e, String viewName, VoxelModel model, GridPanel gridPanel) {
         MouseEvent eventToPass = e;
         if (e.isShiftDown() && startX != null && startY != null) {
-            eventToPass = constrainEvent(e, gridPanel);
+            eventToPass = constrainEvent(e, gridPanel, viewName, model);
         }
         wrapped.onMouseDragged(eventToPass, viewName, model, gridPanel);
     }
@@ -48,16 +52,18 @@ public class ShiftKeyDecorator implements Tool {
     public void onMouseReleased(MouseEvent e) {
         MouseEvent eventToPass = e;
         if (e.isShiftDown() && startX != null && startY != null && lastGridPanel != null) {
-            eventToPass = constrainEvent(e, lastGridPanel);
+            eventToPass = constrainEvent(e, lastGridPanel, lastViewName, lastModel);
         }
         wrapped.onMouseReleased(eventToPass);
         startX = null;
         startY = null;
         lockedDirection = Direction.NONE;
         lastGridPanel = null;
+        lastViewName = null;
+        lastModel = null;
     }
 
-    private MouseEvent constrainEvent(MouseEvent e, GridPanel gridPanel) {
+    private MouseEvent constrainEvent(MouseEvent e, GridPanel gridPanel, String viewName, VoxelModel model) {
         int gridSize = gridPanel.getGridSize();
         int originX = gridPanel.getWidth() / 2 + gridPanel.getPanX();
         int originY = gridPanel.getHeight() / 2 + gridPanel.getPanY();
@@ -76,7 +82,7 @@ public class ShiftKeyDecorator implements Tool {
         int newX = e.getX();
         int newY = e.getY();
 
-        if (wrapped.getName().equals("Brush") || wrapped.getName().equals("Paint")) {
+        if (wrapped.getName().equals("Brush") || wrapped.getName().equals("Paint") || wrapped.getName().equals("Move")) {
             if (lockedDirection == Direction.NONE) {
                 if (absDGridX > 0 || absDGridY > 0) {
                     if (absDGridX > absDGridY * 2) {
@@ -117,6 +123,41 @@ public class ShiftKeyDecorator implements Tool {
 
             newX = originX + targetGridX * gridSize + gridSize / 2;
             newY = originY - targetGridY * gridSize - gridSize / 2;
+        } else if (wrapped.getName().equals("Rotate")) {
+            // Find center of selection
+            if (model != null && viewName != null) {
+                SelectionBox sel = model.getSelection();
+                if (sel != null) {
+                    Vector3D minVec = new Vector3D(sel.getMinX(), sel.getMinY(), sel.getMinZ());
+                    Vector3D maxVec = new Vector3D(sel.getMaxX(), sel.getMaxY(), sel.getMaxZ());
+
+                    Integer u1 = model.getMappedU(viewName, minVec);
+                    Integer u2 = model.getMappedU(viewName, maxVec);
+                    Integer v1 = model.getMappedV(viewName, minVec);
+                    Integer v2 = model.getMappedV(viewName, maxVec);
+
+                    if (u1 != null && u2 != null && v1 != null && v2 != null) {
+                        int minU = Math.min(u1, u2);
+                        int maxU = Math.max(u1, u2);
+                        int minV = Math.min(v1, v2);
+                        int maxV = Math.max(v1, v2);
+
+                        double centerX = minU + (maxU - minU) / 2.0;
+                        double centerY = minV + (maxV - minV) / 2.0;
+
+                        double currentAngle = Math.atan2(currGridY - centerY, currGridX - centerX);
+                        double snapAngle = Math.toRadians(45.0);
+                        double snappedAngle = Math.round(currentAngle / snapAngle) * snapAngle;
+
+                        double dist = Math.hypot(currGridX - centerX, currGridY - centerY);
+                        double snappedGridX = centerX + dist * Math.cos(snappedAngle);
+                        double snappedGridY = centerY + dist * Math.sin(snappedAngle);
+
+                        newX = originX + (int)Math.round(snappedGridX) * gridSize + gridSize / 2;
+                        newY = originY - (int)Math.round(snappedGridY) * gridSize - gridSize / 2;
+                    }
+                }
+            }
         }
 
         return new MouseEvent(
