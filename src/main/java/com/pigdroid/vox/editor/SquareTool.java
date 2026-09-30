@@ -23,7 +23,7 @@ public class SquareTool implements Tool {
     private GridPanel currentGridPanel;
     private boolean isRightClick;
 
-    public SquareTool() {
+    public SquareTool(ToolManager toolManager) {
         optionsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton colorButton = new JButton("Color");
         colorButton.setBackground(currentColor);
@@ -35,6 +35,15 @@ public class SquareTool implements Tool {
             }
         });
         optionsPanel.add(colorButton);
+
+        JButton eyedropperButton = new JButton("Eyedropper");
+        eyedropperButton.addActionListener(e -> {
+            toolManager.startEyedropper(color -> {
+                currentColor = new Color(color);
+                colorButton.setBackground(currentColor);
+            });
+        });
+        optionsPanel.add(eyedropperButton);
     }
 
     @Override

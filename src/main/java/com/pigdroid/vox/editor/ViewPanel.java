@@ -54,6 +54,14 @@ public class ViewPanel extends JPanel {
             public void mousePressed(MouseEvent e) {
                 if (gridPanel.isHoveringSliceHandle(e)) return;
 
+                if (toolManager != null && toolManager.isEyedropperMode()) {
+                    Integer picked = gridPanel.getVoxelColorAt(e.getX(), e.getY());
+                    if (picked != null) {
+                        toolManager.onColorPicked(picked);
+                    }
+                    return;
+                }
+
                 snapshot = model.clone();
                 initialChangeCount = model.getChangeCount();
 

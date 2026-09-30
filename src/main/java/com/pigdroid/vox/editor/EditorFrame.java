@@ -29,6 +29,7 @@ import javax.swing.JToggleButton;
 import javax.swing.ButtonGroup;
 
 import com.pigdroid.vox.editor.io.VoxFile;
+import java.awt.Cursor;
 
 public class EditorFrame extends JFrame {
 
@@ -48,14 +49,22 @@ public class EditorFrame extends JFrame {
         this.toolManager = new ToolManager();
         this.undoManager = new UndoManager();
         loadRecentFiles();
-        this.toolManager.addTool(new ShiftKeyDecorator(new BrushTool()));
-        this.toolManager.addTool(new ShiftKeyDecorator(new PaintTool()));
-        this.toolManager.addTool(new FillTool()); // FillTool doesn't need ShiftKeyDecorator as it triggers on press
-        this.toolManager.addTool(new ShiftKeyDecorator(new SquareTool()));
-        this.toolManager.addTool(new ShiftKeyDecorator(new CircleTool()));
-        this.toolManager.addTool(new ShiftKeyDecorator(new PolyTool()));
+        this.toolManager.addTool(new ShiftKeyDecorator(new BrushTool(this.toolManager)));
+        this.toolManager.addTool(new ShiftKeyDecorator(new PaintTool(this.toolManager)));
+        this.toolManager.addTool(new FillTool(this.toolManager)); // FillTool doesn't need ShiftKeyDecorator as it triggers on press
+        this.toolManager.addTool(new ShiftKeyDecorator(new SquareTool(this.toolManager)));
+        this.toolManager.addTool(new ShiftKeyDecorator(new CircleTool(this.toolManager)));
+        this.toolManager.addTool(new ShiftKeyDecorator(new PolyTool(this.toolManager)));
         this.toolManager.addTool(new ShiftKeyDecorator(new SelectTool()));
         this.toolManager.addTool(new ShiftKeyDecorator(new FreeformTool()));
+
+        this.toolManager.addChangeListener(() -> {
+            if (this.toolManager.isEyedropperMode()) {
+                setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+            } else {
+                setCursor(Cursor.getDefaultCursor());
+            }
+        });
 
         setTitle("Swing Editor");
         setSize(800, 600);
@@ -262,6 +271,7 @@ public class EditorFrame extends JFrame {
         // Bottom Right: Preview
         PreviewPanel previewPanel = new PreviewPanel(voxelModel);
         previewPanel.setBorder(BorderFactory.createTitledBorder("Preview"));
+        previewPanel.setToolManager(this.toolManager);
         centerPanel.add(previewPanel);
 
         GridPanel[] grids = {

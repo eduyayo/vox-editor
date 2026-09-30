@@ -11,6 +11,7 @@ import java.awt.event.MouseWheelEvent;
 import javax.swing.SwingUtilities;
 import java.awt.FontMetrics;
 import java.util.function.Consumer;
+import java.util.Map;
 
 public class GridPanel extends JPanel {
     private int gridSize = 20;
@@ -151,6 +152,27 @@ public class GridPanel extends JPanel {
         int hh = 10;
 
         return e.getX() >= hx && e.getX() <= hx + hw && e.getY() >= hy && e.getY() <= hy + hh;
+    }
+
+    public Integer getVoxelColorAt(int x, int y) {
+        int originX = getWidth() / 2 + panX;
+        int originY = getHeight() / 2 + panY;
+        int u = Math.floorDiv(x - originX, gridSize);
+        int v = Math.floorDiv(originY - y, gridSize);
+
+        String viewName = viewNameSupplier != null ? viewNameSupplier.get() : null;
+        if (model == null || viewName == null) return null;
+
+        Integer pickedColor = null;
+        for (Map.Entry<Vector3D, Integer> entry : model.getVoxels().entrySet()) {
+            Vector3D vec = entry.getKey();
+            Integer mappedU = model.getMappedU(viewName, vec);
+            Integer mappedV = model.getMappedV(viewName, vec);
+            if (mappedU != null && mappedV != null && mappedU == u && mappedV == v) {
+                pickedColor = entry.getValue();
+            }
+        }
+        return pickedColor;
     }
 
     public void setPanY(int panY) {

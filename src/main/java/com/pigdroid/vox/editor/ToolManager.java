@@ -28,6 +28,34 @@ public class ToolManager {
         return activeTool;
     }
 
+    private boolean eyedropperMode = false;
+    private java.util.function.Consumer<Integer> eyedropperCallback;
+
+    public void startEyedropper(java.util.function.Consumer<Integer> callback) {
+        this.eyedropperMode = true;
+        this.eyedropperCallback = callback;
+        notifyListeners();
+    }
+
+    public boolean isEyedropperMode() {
+        return eyedropperMode;
+    }
+
+    public void onColorPicked(int rgb) {
+        if (eyedropperMode && eyedropperCallback != null) {
+            eyedropperCallback.accept(rgb);
+            this.eyedropperMode = false;
+            this.eyedropperCallback = null;
+            notifyListeners();
+        }
+    }
+
+    public void cancelEyedropper() {
+        this.eyedropperMode = false;
+        this.eyedropperCallback = null;
+        notifyListeners();
+    }
+
     public void addChangeListener(Runnable listener) {
         listeners.add(listener);
     }

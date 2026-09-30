@@ -21,7 +21,7 @@ public class PolyTool implements Tool {
     private String currentViewName = null;
     private GridPanel currentGridPanel = null;
 
-    public PolyTool() {
+    public PolyTool(ToolManager toolManager) {
         optionsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton colorButton = new JButton("Color");
         colorButton.setBackground(currentColor);
@@ -36,6 +36,15 @@ public class PolyTool implements Tool {
 
         fillCheckBox = new JCheckBox("Fill", false);
         optionsPanel.add(fillCheckBox);
+
+        JButton eyedropperButton = new JButton("Eyedropper");
+        eyedropperButton.addActionListener(e -> {
+            toolManager.startEyedropper(color -> {
+                currentColor = new Color(color);
+                colorButton.setBackground(currentColor);
+            });
+        });
+        optionsPanel.add(eyedropperButton);
     }
 
     @Override
