@@ -26,6 +26,30 @@ public class PreviewPanel extends JPanel {
 
     private int lastMouseX;
     private int lastMouseY;
+    private ToolManager toolManager;
+
+    private static class HitRegion {
+        Polygon poly;
+        int color;
+        public HitRegion(Polygon poly, int color) {
+            this.poly = poly;
+            this.color = color;
+        }
+    }
+    private List<HitRegion> hitRegions = new ArrayList<>();
+
+    public void setToolManager(ToolManager toolManager) {
+        this.toolManager = toolManager;
+    }
+
+    public Integer getVoxelColorAt(int x, int y) {
+        for (int i = hitRegions.size() - 1; i >= 0; i--) {
+            if (hitRegions.get(i).poly.contains(x, y)) {
+                return hitRegions.get(i).color;
+            }
+        }
+        return null;
+    }
 
     public PreviewPanel(VoxelModel model) {
         this.model = model;
@@ -48,6 +72,12 @@ public class PreviewPanel extends JPanel {
         MouseAdapter mouseAdapter = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
+                if (toolManager != null && toolManager.isEyedropperMode()) {
+                    Integer picked = getVoxelColorAt(e.getX(), e.getY());
+                    if (picked != null) {
+                        toolManager.onColorPicked(picked);
+                    }
+                }
                 lastMouseX = e.getX();
                 lastMouseY = e.getY();
             }
@@ -108,6 +138,7 @@ public class PreviewPanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        hitRegions.clear();
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
@@ -293,6 +324,7 @@ public class PreviewPanel extends JPanel {
 
                     g2d.setColor(new Color(faceR, faceG, faceB));
                     g2d.fillPolygon(p);
+                    hitRegions.add(new HitRegion(p, cube.value));
                     g2d.setColor(Color.BLACK);
                     g2d.drawPolygon(p);
                 }

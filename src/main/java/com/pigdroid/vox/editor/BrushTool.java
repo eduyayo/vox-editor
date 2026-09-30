@@ -12,7 +12,7 @@ public class BrushTool implements Tool {
     private Color currentColor = Color.GRAY;
     private JPanel optionsPanel;
 
-    public BrushTool() {
+    public BrushTool(ToolManager toolManager) {
         optionsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton colorButton = new JButton("Color");
         colorButton.setBackground(currentColor);
@@ -24,6 +24,15 @@ public class BrushTool implements Tool {
             }
         });
         optionsPanel.add(colorButton);
+
+        JButton eyedropperButton = new JButton("Eyedropper");
+        eyedropperButton.addActionListener(e -> {
+            toolManager.startEyedropper(color -> {
+                currentColor = new Color(color);
+                colorButton.setBackground(currentColor);
+            });
+        });
+        optionsPanel.add(eyedropperButton);
     }
 
     @Override
