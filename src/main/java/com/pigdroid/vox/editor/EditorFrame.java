@@ -87,7 +87,7 @@ public class EditorFrame extends JFrame {
         JMenu fileMenu = new JMenu("File");
         fileMenu.setMnemonic(KeyEvent.VK_F);
 
-        JMenuItem newItem = new JMenuItem("New");
+        JMenuItem newItem = new JMenuItem("New file");
         newItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK));
         newItem.addActionListener(e -> newFile());
 
@@ -172,7 +172,7 @@ public class EditorFrame extends JFrame {
         JToolBar toolBar = new JToolBar();
         toolBar.setFloatable(false);
 
-        JButton newBtn = new JButton("New");
+        JButton newBtn = new JButton("New file");
         newBtn.addActionListener(e -> newFile());
         toolBar.add(newBtn);
 
