@@ -110,21 +110,21 @@ public class CircleTool implements Tool {
             int width = maxX - minX + 1;
             int height = maxY - minY + 1;
 
-            BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g2d = img.createGraphics();
-            g2d.setColor(Color.BLACK);
-            g2d.fillOval(0, 0, width, height);
-            g2d.dispose();
+            double cx = minX + width / 2.0;
+            double cy = minY + height / 2.0;
+            double rx = width / 2.0;
+            double ry = height / 2.0;
 
-            for (int x = 0; x < width; x++) {
-                for (int y = 0; y < height; y++) {
-                    if ((img.getRGB(x, y) & 0xFF000000) != 0) {
-                        int gridX = minX + x;
-                        int gridY = minY + y;
+            for (int x = minX; x <= maxX; x++) {
+                for (int y = minY; y <= maxY; y++) {
+                    double dx = (x + 0.5) - cx;
+                    double dy = (y + 0.5) - cy;
+                    // Protect against division by zero if width or height is 0 (though +1 makes them at least 1)
+                    if ((dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) <= 1.0) {
                         if (!isRightClick) {
-                            currentModel.addProjection(currentViewName, gridX, gridY, currentColor.getRGB());
+                            currentModel.addProjection(currentViewName, x, y, currentColor.getRGB());
                         } else {
-                            currentModel.deleteProjection(currentViewName, gridX, gridY);
+                            currentModel.deleteProjection(currentViewName, x, y);
                         }
                     }
                 }
@@ -155,12 +155,25 @@ public class CircleTool implements Tool {
             g.setColor(new Color(currentColor.getRed(), currentColor.getGreen(), currentColor.getBlue(), 128)); // Semi-transparent current color
         }
 
-        int px = currentGridPanel.gridToScreenX(minX);
-        int py = currentGridPanel.gridToScreenY(maxY);
-        int width = (maxX - minX + 1) * gridSize;
-        int height = (maxY - minY + 1) * gridSize;
+        int width = (maxX - minX + 1);
+        int height = (maxY - minY + 1);
 
-        g.fillOval(px, py, width, height);
+        double cx = minX + width / 2.0;
+        double cy = minY + height / 2.0;
+        double rx = width / 2.0;
+        double ry = height / 2.0;
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                double dx = (x + 0.5) - cx;
+                double dy = (y + 0.5) - cy;
+                if ((dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) <= 1.0) {
+                    int px = currentGridPanel.gridToScreenX(x);
+                    int py = currentGridPanel.gridToScreenY(y);
+                    g.fillRect(px, py, gridSize, gridSize);
+                }
+            }
+        }
     }
 
     private void resetState() {
