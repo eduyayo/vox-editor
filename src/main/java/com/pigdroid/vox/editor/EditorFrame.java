@@ -43,6 +43,7 @@ public class EditorFrame extends JFrame {
     private JMenu recentFilesMenu;
     private static final int MAX_RECENT_FILES = 10;
     private Preferences prefs = Preferences.userNodeForPackage(EditorFrame.class);
+    private int lastSavedChangeCount = 0;
 
     public EditorFrame() {
         this.voxelModel = new VoxelModel();
@@ -86,6 +87,10 @@ public class EditorFrame extends JFrame {
         JMenu fileMenu = new JMenu("File");
         fileMenu.setMnemonic(KeyEvent.VK_F);
 
+        JMenuItem newItem = new JMenuItem("New");
+        newItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK));
+        newItem.addActionListener(e -> newFile());
+
         JMenuItem openItem = new JMenuItem("Open");
         openItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK));
         openItem.addActionListener(e -> openFile());
@@ -105,6 +110,7 @@ public class EditorFrame extends JFrame {
         recentFilesMenu = new JMenu("Recent Files");
         updateRecentFilesMenu();
 
+        fileMenu.add(newItem);
         fileMenu.add(openItem);
         fileMenu.add(recentFilesMenu);
         fileMenu.add(saveItem);
@@ -314,7 +320,35 @@ public class EditorFrame extends JFrame {
         add(mainPanel, BorderLayout.CENTER);
     }
 
+    private void newFile() {
+        if (voxelModel.getChangeCount() != lastSavedChangeCount) {
+            int result = JOptionPane.showConfirmDialog(this,
+                    "You have unsaved changes. Are you sure you want to create a new file?",
+                    "Unsaved Changes", JOptionPane.YES_NO_OPTION);
+            if (result != JOptionPane.YES_OPTION) {
+                return;
+            }
+        }
+
+        new ArrayList<>(this.voxelModel.getVoxels().keySet()).forEach(v -> this.voxelModel.removeVoxel(v.x(), v.y(), v.z()));
+        new ArrayList<>(this.voxelModel.getProjections()).forEach(p -> this.voxelModel.deleteProjection(p.viewName(), p.u(), p.v()));
+
+        this.undoManager.clear();
+        this.currentFile = null;
+        this.lastSavedChangeCount = this.voxelModel.getChangeCount();
+        repaint();
+    }
+
     private void openFile() {
+        if (voxelModel.getChangeCount() != lastSavedChangeCount) {
+            int result = JOptionPane.showConfirmDialog(this,
+                    "You have unsaved changes. Are you sure you want to open a new file?",
+                    "Unsaved Changes", JOptionPane.YES_NO_OPTION);
+            if (result != JOptionPane.YES_OPTION) {
+                return;
+            }
+        }
+
         JFileChooser chooser = new JFileChooser();
         int ret = chooser.showOpenDialog(this);
         if (ret == JFileChooser.APPROVE_OPTION) {
@@ -328,7 +362,9 @@ public class EditorFrame extends JFrame {
                 // Keep the current reference system, and clear projections
                 new ArrayList<>(this.voxelModel.getProjections()).forEach(p -> this.voxelModel.deleteProjection(p.viewName(), p.u(), p.v()));
 
+                this.undoManager.clear();
                 this.currentFile = file;
+                this.lastSavedChangeCount = this.voxelModel.getChangeCount();
                 addRecentFile(file);
                 repaint();
             } catch (IOException ex) {
@@ -338,6 +374,15 @@ public class EditorFrame extends JFrame {
     }
 
     private void openRecentFile(File file) {
+        if (voxelModel.getChangeCount() != lastSavedChangeCount) {
+            int result = JOptionPane.showConfirmDialog(this,
+                    "You have unsaved changes. Are you sure you want to open another file?",
+                    "Unsaved Changes", JOptionPane.YES_NO_OPTION);
+            if (result != JOptionPane.YES_OPTION) {
+                return;
+            }
+        }
+
         if (!file.exists()) {
             JOptionPane.showMessageDialog(this, "File does not exist: " + file.getAbsolutePath(), "Error", JOptionPane.ERROR_MESSAGE);
             recentFiles.remove(file);
@@ -350,7 +395,9 @@ public class EditorFrame extends JFrame {
             newModel.getVoxels().forEach((v, c) -> this.voxelModel.setVoxel(v.x(), v.y(), v.z(), c));
             new ArrayList<>(this.voxelModel.getProjections()).forEach(p -> this.voxelModel.deleteProjection(p.viewName(), p.u(), p.v()));
 
+            this.undoManager.clear();
             this.currentFile = file;
+            this.lastSavedChangeCount = this.voxelModel.getChangeCount();
             addRecentFile(file);
             repaint();
         } catch (IOException ex) {
@@ -408,6 +455,7 @@ public class EditorFrame extends JFrame {
         if (currentFile != null) {
             try {
                 VoxFile.write(this.voxelModel, currentFile);
+                this.lastSavedChangeCount = this.voxelModel.getChangeCount();
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(this, "Failed to save file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -427,6 +475,7 @@ public class EditorFrame extends JFrame {
             try {
                 VoxFile.write(this.voxelModel, file);
                 this.currentFile = file;
+                this.lastSavedChangeCount = this.voxelModel.getChangeCount();
                 addRecentFile(file);
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(this, "Failed to save file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);

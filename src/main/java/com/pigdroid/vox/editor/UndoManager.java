@@ -39,4 +39,9 @@ public class UndoManager {
     public boolean canRedo() {
         return !redoStack.isEmpty();
     }
+
+    public void clear() {
+        undoStack.clear();
+        redoStack.clear();
+    }
 }
