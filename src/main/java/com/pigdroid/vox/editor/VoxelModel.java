@@ -404,17 +404,6 @@ public class VoxelModel implements Cloneable {
             }
         }
 
-        // If we found no non-ghosted voxels, fallback to deleting ghosted voxels
-        if (toRemove.isEmpty()) {
-            for (Vector3D voxel : voxels.keySet()) {
-                Integer mappedU = getMappedU(viewName, voxel);
-                Integer mappedV = getMappedV(viewName, voxel);
-                if (mappedU != null && mappedU == u && mappedV != null && mappedV == v) {
-                    toRemove.add(voxel);
-                }
-            }
-        }
-
         for (Vector3D voxel : toRemove) {
             voxels.remove(voxel);
         }
