@@ -172,6 +172,10 @@ public class EditorFrame extends JFrame {
         JToolBar toolBar = new JToolBar();
         toolBar.setFloatable(false);
 
+        JButton newBtn = new JButton("New");
+        newBtn.addActionListener(e -> newFile());
+        toolBar.add(newBtn);
+
         JButton openBtn = new JButton("Open");
         openBtn.addActionListener(e -> openFile());
         toolBar.add(openBtn);
